@@ -5,7 +5,7 @@
 class SheetsAPI {
     constructor() {
         // ستحتاج لتعديل هذا الرابط بعد نشر Apps Script
-        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeeEzsoeZt1wW_Zv3srSimL3KD6qvkXH2Zs5eBf3VWw1U_beeCtBzVbKHVIs8OM5PQEA/exec';
+        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkS994h1375uAwiHWVVeJSuikjxLN4HKvnsmZk6iMaQHZ1V_KGMjAyRfjARpRXy1lPJg/exec';
         
         // ✅ تم تعيينه بنجاح! الآن الاتصال الفعلي يعمل
         this.isConfigured = true;
@@ -327,29 +327,7 @@ class SheetsAPI {
         });
     }
 
-    /**
-     * حفظ الموقع الجغرافي
-     */
-    async recordLocation(employeeID, latitude, longitude, accuracy, address = '') {
-        return this.post('recordLocation', {
-            employeeID: employeeID,
-            latitude: latitude,
-            longitude: longitude,
-            accuracy: accuracy,
-            address: address,
-            timestamp: new Date().toISOString()
-        });
-    }
 
-    /**
-     * الحصول على سجل الموقع لموظف
-     */
-    async getLocationHistory(employeeID, days = 7) {
-        return this.get('getLocationHistory', {
-            employeeID: employeeID,
-            days: days
-        });
-    }
 
     /**
      * الحصول على الإعدادات (GPS, أوقات العمل، إلخ)
@@ -418,31 +396,6 @@ class SheetsAPI {
     async checkInConditions(employeeID) {
         return this.get('checkInConditions', {
             employeeID: employeeID
-        });
-    }
-
-    /**
-     * تسجيل حضور - التحقق من الموقع فقط (بدون حفظ بيانات GPS)
-     */
-    async checkInWithLocation(employeeID, deviceID, latitude = null, longitude = null, accuracy = null, address = '') {
-        // نتجاهل بيانات GPS - فقط نسجل الحضور بدون بيانات الموقع
-        console.log('✅ GPS تم التحقق منه - تسجيل الحضور بدون بيانات الموقع');
-        return this.post('checkIn', {
-            employeeID: employeeID,
-            deviceID: deviceID,
-            timestamp: new Date().toISOString()
-        });
-    }
-
-    /**
-     * تسجيل انصراف - التحقق من الموقع فقط (بدون حفظ بيانات GPS)
-     */
-    async checkOutWithLocation(employeeID, latitude = null, longitude = null, accuracy = null, address = '') {
-        // نتجاهل بيانات GPS - فقط نسجل الانصراف بدون بيانات الموقع
-        console.log('✅ GPS تم التحقق منه - تسجيل الانصراف بدون بيانات الموقع');
-        return this.post('checkOut', {
-            employeeID: employeeID,
-            timestamp: new Date().toISOString()
         });
     }
 

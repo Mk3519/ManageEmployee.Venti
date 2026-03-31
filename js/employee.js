@@ -138,6 +138,12 @@ function displayEmployeeData() {
             element.textContent = value;
         }
     });
+
+    // تحديث الرسالة الترحيبية
+    const welcomeNameElement = document.getElementById('welcomeName');
+    if (welcomeNameElement) {
+        welcomeNameElement.textContent = employeeData.name;
+    }
 }
 
 /**

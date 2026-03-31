@@ -19,7 +19,6 @@ body {
 .dashboard-header {
     background: linear-gradient(135deg, #5b4edb 0%, #4c3bb8 100%);
     color: white;
-    padding: var(--spacing-md);
     box-shadow: 0 4px 12px rgba(91, 78, 219, 0.2);
     position: sticky;
     top: 0;
@@ -77,34 +76,42 @@ body {
    ============================================ */
 
 .welcome-section {
-    background: linear-gradient(135deg, #5b4edb 0%, #7c68ee 100%);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin: 0;
+    box-shadow: none;
     color: white;
 }
 
 .welcome-content {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
 }
 
 .welcome-icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     flex-shrink: 0;
 }
 
+.welcome-text {
+    flex: 1;
+}
+
 .welcome-text h2 {
-    font-size: var(--font-size-xl);
+    font-size: 1.3rem;
     color: white;
     margin-bottom: var(--spacing-xs);
     font-weight: 600;
@@ -113,7 +120,7 @@ body {
 .welcome-text p {
     color: rgba(255, 255, 255, 0.95);
     margin-bottom: var(--spacing-xs);
-    font-size: var(--font-size-base);
+    font-size: 0.95rem;
 }
 
 #welcomeName {
@@ -123,13 +130,19 @@ body {
 
 .welcome-subtitle {
     color: rgba(255, 255, 255, 0.85) !important;
-    font-size: var(--font-size-sm) !important;
+    font-size: 0.95rem !important;
 }
 
-@media (max-width: 640px) {
+#logoutBtn {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
     .welcome-content {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
     }
 
     .welcome-section {
@@ -137,13 +150,17 @@ body {
     }
 
     .welcome-icon {
-        width: 70px;
-        height: 70px;
+        width: 60px;
+        height: 60px;
         font-size: 2rem;
     }
 
     .welcome-text h2 {
-        font-size: var(--font-size-lg);
+        font-size: 1.1rem;
+    }
+
+    .welcome-text p {
+        font-size: 0.85rem;
     }
 }
 

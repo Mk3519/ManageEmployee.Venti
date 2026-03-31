@@ -1,0 +1,521 @@
+/* ============================================
+   أنماط لوحات العمل (Dashboards)
+   ============================================ */
+
+body {
+    background-color: var(--light-color);
+}
+
+.dashboard-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================
+   الشريط العلوي (Header)
+   ============================================ */
+
+.dashboard-header {
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    color: white;
+    padding: var(--spacing-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.dashboard-header.admin-header {
+    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: var(--spacing-md);
+}
+
+.header-content h1 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+/* ============================================
+   المحتوى الرئيسي
+   ============================================ */
+
+.dashboard-main {
+    flex: 1;
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ============================================
+   إحصائيات (Stats)
+   ============================================ */
+
+.statistics-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: var(--transition);
+    border-top: 4px solid;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-attendance {
+    border-top-color: #4caf50;
+}
+
+.stat-absence {
+    border-top-color: #f44336;
+}
+
+.stat-leave {
+    border-top-color: #2196f3;
+}
+
+.stat-late {
+    border-top-color: #ff9800;
+}
+
+.stat-discount {
+    border-top-color: #9c27b0;
+}
+
+.stat-warning {
+    border-top-color: #f57c00;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-unit {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ============================================
+   قسم الحضور والانصراف
+   ============================================ */
+
+.attendance-section {
+    background: white;
+}
+
+.attendance-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.status-display {
+    display: flex;
+    align-items: center;
+}
+
+.status-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+}
+
+.status-present {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-absent {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.time-display {
+    text-align: center;
+}
+
+.current-time {
+    font-size: var(--font-size-2xl);
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.current-date {
+    color: var(--text-light);
+}
+
+.attendance-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.btn-lg {
+    flex-direction: column;
+    height: 120px;
+    border-radius: 12px;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.button-icon {
+    font-size: 2rem;
+    display: block;
+}
+
+.last-attendance-info {
+    background-color: var(--light-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    border-right: 3px solid var(--primary-color);
+}
+
+.last-attendance-info p {
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+}
+
+.last-attendance-info span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* ============================================
+   بطاقة بيانات الموظف
+   ============================================ */
+
+.employee-card {
+    background: white;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.info-item .value {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+@media (min-width: 768px) {
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .info-item .label {
+        margin-bottom: var(--spacing-xs);
+    }
+}
+
+/* ============================================
+   سجل الحضور
+   ============================================ */
+
+.attendance-history {
+    background: white;
+}
+
+.attendance-table {
+    margin-top: var(--spacing-md);
+}
+
+.attendance-table th {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* ============================================
+   علامات التبويب (Tabs)
+   ============================================ */
+
+.tabs-container {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tabs-header {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: var(--spacing-md) var(--spacing-sm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-light);
+    transition: var(--transition);
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    min-width: 150px;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-btn:hover {
+    background-color: var(--light-color);
+}
+
+.tab-content {
+    display: none;
+    padding: var(--spacing-lg);
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   البيانات والجداول
+   ============================================ */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--spacing-sm);
+    text-align: right;
+    font-weight: 600;
+}
+
+.data-table td {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--light-color);
+}
+
+/* ============================================
+   التقارير
+   ============================================ */
+
+.reports-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+}
+
+.report-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.report-card h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.report-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.report-controls .form-control {
+    flex: 1;
+    min-width: 150px;
+}
+
+.report-controls .btn {
+    min-width: 120px;
+}
+
+.report-table {
+    width: 100%;
+    margin-top: var(--spacing-md);
+}
+
+.report-table th {
+    background-color: var(--info-color);
+    color: white;
+}
+
+/* ============================================
+   الإعدادات
+   ============================================ */
+
+.settings-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+/* ============================================
+   الاستجابية للأجهزة
+   ============================================ */
+
+@media (max-width: 767px) {
+    .dashboard-main {
+        padding: var(--spacing-md);
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-content h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .user-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .tab-btn {
+        min-width: 120px;
+        font-size: var(--font-size-sm);
+    }
+
+    .reports-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 768px) {
+    .dashboard-main {
+        padding: var(--spacing-xl);
+    }
+
+    .reports-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .reports-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .dashboard-main {
+        padding: var(--spacing-xl) var(--spacing-xl);
+    }
+}

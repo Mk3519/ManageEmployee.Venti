@@ -1,0 +1,124 @@
+/* ============================================
+   أنماط صفحة تسجيل الدخول
+   ============================================ */
+
+body {
+    background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideInUp 0.5s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.login-header h1 {
+    color: var(--primary-color);
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-xs);
+}
+
+.login-header p {
+    color: var(--text-light);
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+}
+
+.login-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+.login-form .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.login-form label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-group .form-control {
+    flex: 1;
+    padding-left: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    left: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    opacity: 0.7;
+}
+
+.device-info {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.device-info small {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   الاستجابية للأجهزة الأكبر
+   ============================================ */
+
+@media (min-width: 768px) {
+    .login-container {
+        max-width: 500px;
+    }
+
+    .login-card {
+        padding: var(--spacing-xl);
+    }
+
+    body {
+        padding: var(--spacing-xl);
+    }
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e88e5">
+    <title>لوحة الموظف - نظام الحضور والانصراف</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- الشريط العلوي (Header) -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>لوحة الموظف</h1>
+                <div class="user-info">
+                    <span id="userName" class="user-name">--</span>
+                    <button id="logoutBtn" class="btn btn-logout">تسجيل الخروج</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- الجزء الرئيسي -->
+        <main class="dashboard-main">
+            <!-- رسائل التنبيه -->
+            <div id="alertContainer" class="alert-container"></div>
+
+            <!-- بطاقة بيانات الموظف -->
+            <section class="employee-card card-section">
+                <h2>بيانات الموظف</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">الاسم:</span>
+                        <span class="value" id="empName">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">رقم الموظف:</span>
+                        <span class="value" id="empID">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">الوظيفة:</span>
+                        <span class="value" id="empPosition">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">الراتب:</span>
+                        <span class="value" id="empSalary">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">الهاتف:</span>
+                        <span class="value" id="empPhone">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">البريد الإلكتروني:</span>
+                        <span class="value" id="empEmail">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- قسم الحضور والانصراف -->
+            <section class="attendance-section card-section">
+                <h2>تسجيل الحضور والانصراف</h2>
+                <div class="attendance-status">
+                    <div id="attendanceStatus" class="status-display">
+                        <span class="status-badge status-absent">غير حاضر</span>
+                    </div>
+                    <div class="time-display">
+                        <p id="currentTime" class="current-time">--:--:--</p>
+                        <p id="currentDate" class="current-date">--/--/----</p>
+                    </div>
+                </div>
+
+                <div class="attendance-buttons">
+                    <button id="checkInBtn" class="btn btn-success btn-lg">
+                        <span class="button-icon">📍</span>
+                        <span>حضور</span>
+                    </button>
+                    <button id="checkOutBtn" class="btn btn-warning btn-lg" disabled>
+                        <span class="button-icon">🚪</span>
+                        <span>انصراف</span>
+                    </button>
+                </div>
+
+                <!-- معلومات آخر تسجيل -->
+                <div class="last-attendance-info">
+                    <p>آخر حضور: <span id="lastCheckIn">--</span></p>
+                    <p>آخر انصراف: <span id="lastCheckOut">--</span></p>
+                </div>
+            </section>
+
+            <!-- قسم الإحصائيات -->
+            <section class="statistics-section">
+                <h2>الإحصائيات</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-attendance">
+                        <div class="stat-number" id="totalAttendance">0</div>
+                        <div class="stat-label">إجمالي الحضور</div>
+                        <div class="stat-unit">يوم</div>
+                    </div>
+
+                    <div class="stat-card stat-absence">
+                        <div class="stat-number" id="totalAbsence">0</div>
+                        <div class="stat-label">إجمالي الغياب</div>
+                        <div class="stat-unit">يوم</div>
+                    </div>
+
+                    <div class="stat-card stat-leave">
+                        <div class="stat-number" id="totalLeave">0</div>
+                        <div class="stat-label">إجمالي الإجازات</div>
+                        <div class="stat-unit">يوم</div>
+                    </div>
+
+                    <div class="stat-card stat-late">
+                        <div class="stat-number" id="totalLate">0</div>
+                        <div class="stat-label">إجمالي التأخيرات</div>
+                        <div class="stat-unit">مرات</div>
+                    </div>
+
+                    <div class="stat-card stat-discount">
+                        <div class="stat-number" id="totalDiscount">0</div>
+                        <div class="stat-label">إجمالي الجزاءات</div>
+                        <div class="stat-unit">ريال</div>
+                    </div>
+
+                    <div class="stat-card stat-warning">
+                        <div class="stat-number" id="totalWarning">0</div>
+                        <div class="stat-label">الإنذارات</div>
+                        <div class="stat-unit">عدد</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- سجل الحضور الشهري -->
+            <section class="attendance-history card-section">
+                <h2>سجل الحضور الشهري</h2>
+                <div class="table-responsive">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>وقت الحضور</th>
+                                <th>وقت الانصراف</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center">لا توجد بيانات</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/device-fingerprint.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/employee.js"></script>
+</body>
+</html>

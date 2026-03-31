@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>لوحة المدير - نظام الحضور والانصراف</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container admin-dashboard">
+        <!-- الشريط العلوي (Header) -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>لوحة إدارة النظام</h1>
+                <div class="user-info">
+                    <span id="adminName" class="user-name">--</span>
+                    <button id="logoutBtn" class="btn btn-logout">تسجيل الخروج</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- الجزء الرئيسي -->
+        <main class="dashboard-main">
+            <!-- رسائل التنبيه -->
+            <div id="alertContainer" class="alert-container"></div>
+
+            <!-- علامات التبويب (Tabs) -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="employees">إدارة الموظفين</button>
+                    <button class="tab-btn" data-tab="disciplines">الجزاءات والسلف</button>
+                    <button class="tab-btn" data-tab="reports">التقارير</button>
+                    <button class="tab-btn" data-tab="devices">إدارة الأجهزة</button>
+                    <button class="tab-btn" data-tab="settings">الإعدادات</button>
+                </div>
+
+                <!-- تبويب: إدارة الموظفين -->
+                <div id="employees" class="tab-content active">
+                    <h2>إدارة الموظفين</h2>
+                    <button id="addEmployeeBtn" class="btn btn-primary">+ إضافة موظف جديد</button>
+                    
+                    <div class="table-responsive" style="margin-top: 20px;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>المعرف</th>
+                                    <th>الاسم</th>
+                                    <th>الوظيفة</th>
+                                    <th>الراتب</th>
+                                    <th>الهاتف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- تبويب: الجزاءات والسلف -->
+                <div id="disciplines" class="tab-content">
+                    <h2>إدارة الجزاءات والسلف</h2>
+                    <div class="form-row">
+                        <button id="addDisciplineBtn" class="btn btn-danger">+ تطبيق جزاء</button>
+                        <button id="addAdvanceBtn" class="btn btn-warning">+ إضافة سلفة</button>
+                    </div>
+
+                    <!-- جدول الجزاءات -->
+                    <h3 style="margin-top: 30px;">سجل الجزاءات</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>النوع</th>
+                                    <th>المبلغ/السبب</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disciplinesTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">لا توجد بيانات</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- جدول السلف -->
+                    <h3 style="margin-top: 30px;">سجل السلف</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>المبلغ</th>
+                                    <th>الخصم الشهري</th>
+                                    <th>الأشهر المتبقية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advancesTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">لا توجد بيانات</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- تبويب: التقارير -->
+                <div id="reports" class="tab-content">
+                    <h2>التقارير</h2>
+                    <div class="reports-container">
+                        <!-- تقرير الحضور -->
+                        <div class="report-card">
+                            <h3>تقرير الحضور والانصراف</h3>
+                            <div class="report-controls">
+                                <input type="date" id="reportStartDate" class="form-control">
+                                <input type="date" id="reportEndDate" class="form-control">
+                                <button id="generateAttendanceReport" class="btn btn-info">عرض التقرير</button>
+                                <button id="downloadAttendanceReport" class="btn btn-success">تحميل Excel</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="report-table" id="attendanceReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>المعرف</th>
+                                            <th>التاريخ</th>
+                                            <th>وقت الحضور</th>
+                                            <th>وقت الانصراف</th>
+                                            <th>المدة</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="7" class="text-center">لا توجد بيانات</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- تقرير الغياب -->
+                        <div class="report-card">
+                            <h3>تقرير الغياب</h3>
+                            <div class="report-controls">
+                                <input type="month" id="absenceReportMonth" class="form-control">
+                                <button id="generateAbsenceReport" class="btn btn-info">عرض التقرير</button>
+                                <button id="downloadAbsenceReport" class="btn btn-success">تحميل Excel</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="report-table" id="absenceReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>المعرف</th>
+                                            <th>عدد أيام الغياب</th>
+                                            <th>النسبة %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">لا توجد بيانات</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- تقرير التأخيرات -->
+                        <div class="report-card">
+                            <h3>تقرير التأخيرات</h3>
+                            <div class="report-controls">
+                                <input type="month" id="lateReportMonth" class="form-control">
+                                <button id="generateLateReport" class="btn btn-info">عرض التقرير</button>
+                                <button id="downloadLateReport" class="btn btn-success">تحميل Excel</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="report-table" id="lateReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>المعرف</th>
+                                            <th>عدد مرات التأخير</th>
+                                            <th>إجمالي دقائق التأخير</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">لا توجد بيانات</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تبويب: إدارة الأجهزة -->
+                <div id="devices" class="tab-content">
+                    <h2>طلبات تغيير الأجهزة</h2>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>الجهاز القديم</th>
+                                    <th>الجهاز الجديد</th>
+                                    <th>تاريخ الطلب</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center">لا توجد طلبات</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- تبويب: الإعدادات -->
+                <div id="settings" class="tab-content">
+                    <h2>الإعدادات</h2>
+                    <div class="settings-section">
+                        <h3>موقع مكان العمل</h3>
+                        <div class="form-group">
+                            <label>خط العرض (Latitude):</label>
+                            <input type="number" id="workLatitude" class="form-control" step="0.00001" placeholder="مثلاً: 24.7136">
+                        </div>
+                        <div class="form-group">
+                            <label>خط الطول (Longitude):</label>
+                            <input type="number" id="workLongitude" class="form-control" step="0.00001" placeholder="مثلاً: 46.6753">
+                        </div>
+                        <div class="form-group">
+                            <label>نطاق المسافة المسموح (متر):</label>
+                            <input type="number" id="workRadius" class="form-control" value="100" placeholder="المسافة بالمتر">
+                        </div>
+                        <button id="saveLocationBtn" class="btn btn-success">حفظ الموقع</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>أوقات العمل</h3>
+                        <div class="form-group">
+                            <label>موعد بدء العمل:</label>
+                            <input type="time" id="workStartTime" class="form-control" value="08:00">
+                        </div>
+                        <div class="form-group">
+                            <label>موعد نهاية العمل:</label>
+                            <input type="time" id="workEndTime" class="form-control" value="17:00">
+                        </div>
+                        <button id="saveTimingsBtn" class="btn btn-success">حفظ الأوقات</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for forms will be added here dynamically -->
+    <div id="modalContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/device-fingerprint.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

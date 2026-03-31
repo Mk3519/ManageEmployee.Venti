@@ -148,8 +148,6 @@ function doGet(e) {
         return handleGetDisciplinesReport(e);
       case 'getAdvancesReport':
         return handleGetAdvancesReport(e);
-      case 'getLocationHistory':
-        return handleGetLocationHistory(e);
       case 'getSettings':
         return handleGetSettings(e);
       case 'checkInConditions':
@@ -191,8 +189,6 @@ function doPost(e) {
         return handleApproveDeviceRequest(e);
       case 'rejectDeviceRequest':
         return handleRejectDeviceRequest(e);
-      case 'recordLocation':
-        return handleRecordLocation(e);
       case 'applyDisciplineWithSignature':
         return handleApplyDisciplineWithSignature(e);
       case 'updateSettings':
@@ -321,8 +317,8 @@ function validateCheckInConditions(employeeID, timestamp) {
   try {
     const attendanceSheet = ss.getSheetByName('Attendance');
     const data = attendanceSheet.getDataRange().getValues();
-    const currentDate = new Date(timestamp).toLocaleDateString('ar-SA');
-    const currentTime = new Date(timestamp).toLocaleTimeString('ar-SA');
+    const currentDate = formatDate(new Date(timestamp));
+    const currentTime = formatTime(new Date(timestamp));
     
     // البحث عن آخر تسجيل للموظف
     let lastCheckInRow = -1;
@@ -402,8 +398,8 @@ function handleCheckIn(e) {
   
   try {
     const attendanceSheet = ss.getSheetByName('Attendance');
-    const date = new Date(timestamp).toLocaleDateString('ar-SA');
-    const time = new Date(timestamp).toLocaleTimeString('ar-SA');
+    const date = formatDate(new Date(timestamp));
+    const time = formatTime(new Date(timestamp));
     
     // ✅ التحقق من شروط الحضور (الشرط الأساسي)
     const validation = validateCheckInConditions(employeeID, timestamp);
@@ -419,7 +415,7 @@ function handleCheckIn(e) {
     
     // إذا كان هناك check-in بدون check-out من أمس، نعمل انصراف تلقائي
     if (validation.autoCheckOut && validation.autoCheckOutRow) {
-      const yesterdayTime = new Date(new Date(timestamp).getTime() - 24 * 60 * 60 * 1000).toLocaleTimeString('ar-SA');
+      const yesterdayTime = formatTime(new Date(new Date(timestamp).getTime() - 24 * 60 * 60 * 1000));
       attendanceSheet.getRange(validation.autoCheckOutRow, 4).setValue(yesterdayTime);
       
       // حساب المدة
@@ -466,8 +462,8 @@ function handleCheckOut(e) {
   try {
     const attendanceSheet = ss.getSheetByName('Attendance');
     const data = attendanceSheet.getDataRange().getValues();
-    const date = new Date(timestamp).toLocaleDateString('ar-SA');
-    const time = new Date(timestamp).toLocaleTimeString('ar-SA');
+    const date = formatDate(new Date(timestamp));
+    const time = formatTime(new Date(timestamp));
     
     for (let i = data.length - 1; i > 0; i--) {
       if (String(data[i][0]) === String(employeeID) && String(data[i][1]) === String(date) && data[i][3] === '') {
@@ -497,70 +493,6 @@ function handleCheckOut(e) {
     return jsonResponse({
       success: false,
       message: 'خطأ في تسجيل الانصراف: ' + error.toString()
-    });
-  }
-}
-
-/**
- * حفظ بيانات الموقع الجغرافي
- */
-function recordLocationData(employeeID, latitude, longitude, accuracy, timestamp, checkType, address) {
-  try {
-    const locationsSheet = ss.getSheetByName('Locations');
-    locationsSheet.appendRow([
-      employeeID,
-      latitude,
-      longitude,
-      accuracy,
-      new Date(timestamp).toLocaleString('ar-SA'),
-      'Active',
-      address,
-      checkType
-    ]);
-  } catch(error) {
-    Logger.log('خطأ في حفظ الموقع: ' + error.toString());
-  }
-}
-
-/**
- * تطبيق جزاء التأخير الآلي
- */
-function applyAutoLateDiscount(employeeID, date) {
-  try {
-    const disciplinesSheet = ss.getSheetByName('Disciplines');
-    disciplinesSheet.appendRow([
-      employeeID,
-      'Discount',
-      10,  // خصم 10 ريال للتأخير
-      date,
-      'SYSTEM',
-      'جزاء تأخير تلقائي'
-    ]);
-  } catch(error) {
-    Logger.log('خطأ في تطبيق جزاء التأخير: ' + error.toString());
-  }
-}
-
-/**
- * دالة جديدة: حفظ الموقع (يمكن استدعاؤها منفصلة)
- */
-function handleRecordLocation(e) {
-  const employeeID = e.parameter.employeeID;
-  const latitude = e.parameter.latitude;
-  const longitude = e.parameter.longitude;
-  const accuracy = e.parameter.accuracy;
-  const address = e.parameter.address || '';
-  
-  try {
-    recordLocationData(employeeID, latitude, longitude, accuracy, new Date().toISOString(), 'Manual', address);
-    return jsonResponse({
-      success: true,
-      message: 'تم حفظ الموقع بنجاح'
-    });
-  } catch(error) {
-    return jsonResponse({
-      success: false,
-      message: 'خطأ: ' + error.toString()
     });
   }
 }
@@ -1149,15 +1081,16 @@ function handleApplyDiscipline(e) {
     // إنشاء توقيع رقمي
     const signature = generateDigitalSignature(adminID, employeeID, type, amount);
     
+    const dateObj = new Date();
     disciplinesSheet.appendRow([
       employeeID,
       type,
       amount,
-      new Date().toLocaleDateString('ar-SA'),
+      formatDate(dateObj),
       adminID,
       reason,
       signature,  // عمود التوقيع الجديد
-      new Date().toLocaleString('ar-SA')
+      formatDate(dateObj) + ' ' + formatTime(dateObj)
     ]);
     
     return jsonResponse({
@@ -1191,15 +1124,16 @@ function handleApplyDisciplineWithSignature(e) {
     // إنشاء توقيع رقمي معقد
     const signature = generateComplexSignature(adminID, employeeID, type, amount, deviceSignature, timestamp);
     
+    const dateObj = new Date();
     disciplinesSheet.appendRow([
       employeeID,
       type,
       amount,
-      new Date().toLocaleDateString('ar-SA'),
+      formatDate(dateObj),
       adminID,
       reason,
       signature,
-      new Date().toLocaleString('ar-SA'),
+      formatDate(dateObj) + ' ' + formatTime(dateObj),
       deviceSignature,
       timestamp
     ]);
@@ -1282,7 +1216,7 @@ function handleAddEmployee(e) {
       email,
       password,
       'Active',
-      new Date().toLocaleDateString('ar-SA')
+      formatDate(new Date())
     ]);
     
     return jsonResponse({
@@ -1377,7 +1311,7 @@ function handleAddAdvance(e) {
     advancesSheet.appendRow([
       employeeID,
       amount,
-      new Date().toLocaleDateString('ar-SA'),
+      formatDate(new Date()),
       amount / months,
       months,
       'Active'
@@ -1406,7 +1340,7 @@ function handleRequestDeviceChange(e) {
       employeeID,
       newDeviceID,
       'Pending',
-      new Date().toLocaleDateString('ar-SA'),
+      formatDate(new Date()),
       '',
       ''
     ]);
@@ -1433,7 +1367,7 @@ function handleApproveDeviceRequest(e) {
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]) === String(employeeID) && data[i][2] === 'Pending') {
         devicesSheet.getRange(i + 1, 3).setValue('Approved');
-        devicesSheet.getRange(i + 1, 5).setValue(new Date().toLocaleDateString('ar-SA'));
+        devicesSheet.getRange(i + 1, 5).setValue(formatDate(new Date()));
         devicesSheet.getRange(i + 1, 6).setValue(e.parameter.adminID);
         
         return jsonResponse({
@@ -1488,6 +1422,25 @@ function handleRejectDeviceRequest(e) {
 // ============================================
 // دوال مساعدة
 // ============================================
+
+/**
+ * تنسيق التاريخ بصيغة يوم/شهر/سنة
+ */
+function formatDate(dateObj) {
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * تنسيق الوقت بصيغة ساعة:دقيقة
+ */
+function formatTime(dateObj) {
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
 
 function getEmployeeName(employeeID) {
   try {

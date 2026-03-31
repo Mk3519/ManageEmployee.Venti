@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#d32f2f">
+    <meta name="theme-color" content="#5b4edb">
     <title>لوحة المدير - نظام الحضور والانصراف</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -16,7 +17,10 @@
                 <h1>لوحة إدارة النظام</h1>
                 <div class="user-info">
                     <span id="adminName" class="user-name">--</span>
-                    <button id="logoutBtn" class="btn btn-logout">تسجيل الخروج</button>
+                    <button id="logoutBtn" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>تسجيل الخروج</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -39,7 +43,10 @@
                 <!-- تبويب: إدارة الموظفين -->
                 <div id="employees" class="tab-content active">
                     <h2>إدارة الموظفين</h2>
-                    <button id="addEmployeeBtn" class="btn btn-primary">+ إضافة موظف جديد</button>
+                    <button id="addEmployeeBtn" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        <span>إضافة موظف جديد</span>
+                    </button>
                     
                     <div class="table-responsive" style="margin-top: 20px;">
                         <table class="data-table">
@@ -67,8 +74,14 @@
                 <div id="disciplines" class="tab-content">
                     <h2>إدارة الجزاءات والسلف</h2>
                     <div class="form-row">
-                        <button id="addDisciplineBtn" class="btn btn-danger">+ تطبيق جزاء</button>
-                        <button id="addAdvanceBtn" class="btn btn-warning">+ إضافة سلفة</button>
+                        <button id="addDisciplineBtn" class="btn btn-danger">
+                            <i class="fas fa-frown"></i>
+                            <span>تطبيق جزاء</span>
+                        </button>
+                        <button id="addAdvanceBtn" class="btn btn-warning">
+                            <i class="fas fa-money-bill"></i>
+                            <span>إضافة سلفة</span>
+                        </button>
                     </div>
 
                     <!-- جدول الجزاءات -->
@@ -124,8 +137,14 @@
                             <div class="report-controls">
                                 <input type="date" id="reportStartDate" class="form-control">
                                 <input type="date" id="reportEndDate" class="form-control">
-                                <button id="generateAttendanceReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadAttendanceReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateAttendanceReport" class="btn btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>عرض التقرير</span>
+                                </button>
+                                <button id="downloadAttendanceReport" class="btn btn-success">
+                                    <i class="fas fa-download"></i>
+                                    <span>تحميل Excel</span>
+                                </button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="attendanceReportTable">
@@ -154,8 +173,14 @@
                             <h3>تقرير الغياب</h3>
                             <div class="report-controls">
                                 <input type="month" id="absenceReportMonth" class="form-control">
-                                <button id="generateAbsenceReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadAbsenceReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateAbsenceReport" class="btn btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>عرض التقرير</span>
+                                </button>
+                                <button id="downloadAbsenceReport" class="btn btn-success">
+                                    <i class="fas fa-download"></i>
+                                    <span>تحميل Excel</span>
+                                </button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="absenceReportTable">
@@ -181,8 +206,14 @@
                             <h3>تقرير التأخيرات</h3>
                             <div class="report-controls">
                                 <input type="month" id="lateReportMonth" class="form-control">
-                                <button id="generateLateReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadLateReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateLateReport" class="btn btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>عرض التقرير</span>
+                                </button>
+                                <button id="downloadLateReport" class="btn btn-success">
+                                    <i class="fas fa-download"></i>
+                                    <span>تحميل Excel</span>
+                                </button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="lateReportTable">
@@ -246,7 +277,10 @@
                             <label>نطاق المسافة المسموح (متر):</label>
                             <input type="number" id="workRadius" class="form-control" value="100" placeholder="المسافة بالمتر">
                         </div>
-                        <button id="saveLocationBtn" class="btn btn-success">حفظ الموقع</button>
+                        <button id="saveLocationBtn" class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            <span>حفظ الموقع</span>
+                        </button>
                     </div>
 
                     <div class="settings-section">
@@ -259,7 +293,10 @@
                             <label>موعد نهاية العمل:</label>
                             <input type="time" id="workEndTime" class="form-control" value="17:00">
                         </div>
-                        <button id="saveTimingsBtn" class="btn btn-success">حفظ الأوقات</button>
+                        <button id="saveTimingsBtn" class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            <span>حفظ الأوقات</span>
+                        </button>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 /* ============================================
-   أنماط لوحات العمل (Dashboards)
+   تصميم لوحات العمل - Minimalist Modern
    ============================================ */
 
 body {
@@ -17,17 +17,18 @@ body {
    ============================================ */
 
 .dashboard-header {
-    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    background: linear-gradient(135deg, #5b4edb 0%, #4c3bb8 100%);
     color: white;
     padding: var(--spacing-md);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(91, 78, 219, 0.2);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 .dashboard-header.admin-header {
-    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .header-content {
@@ -37,12 +38,14 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     gap: var(--spacing-md);
+    padding: 0 var(--spacing-md);
 }
 
 .header-content h1 {
     margin: 0;
-    font-size: var(--font-size-lg);
+    font-size: 1.25rem;
     color: white;
+    font-weight: 600;
 }
 
 .user-info {
@@ -52,7 +55,7 @@ body {
 }
 
 .user-name {
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--font-size-sm);
     white-space: nowrap;
 }
@@ -63,17 +66,97 @@ body {
 
 .dashboard-main {
     flex: 1;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
 }
 
 /* ============================================
-   إحصائيات (Stats)
+   قسم الترحيب
+   ============================================ */
+
+.welcome-section {
+    background: linear-gradient(135deg, #5b4edb 0%, #7c68ee 100%);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-lg);
+    color: white;
+}
+
+.welcome-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.welcome-text h2 {
+    font-size: var(--font-size-xl);
+    color: white;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.welcome-text p {
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+}
+
+#welcomeName {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.welcome-subtitle {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: var(--font-size-sm) !important;
+}
+
+@media (max-width: 640px) {
+    .welcome-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-section {
+        padding: var(--spacing-md);
+    }
+
+    .welcome-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+
+    .welcome-text h2 {
+        font-size: var(--font-size-lg);
+    }
+}
+
+/* ============================================
+   إحصائيات (Stats) - بسيطة وحديثة
    ============================================ */
 
 .statistics-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.statistics-section h2 {
+    color: var(--dark-color);
     margin-bottom: var(--spacing-lg);
 }
 
@@ -87,51 +170,57 @@ body {
 .stat-card {
     background: white;
     border-radius: var(--border-radius);
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     transition: var(--transition);
-    border-top: 4px solid;
+    border: none;
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .stat-attendance {
-    border-top-color: #4caf50;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0.05) 100%);
+    border-top: 3px solid #28a745;
 }
 
 .stat-absence {
-    border-top-color: #f44336;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+    border-top: 3px solid #dc3545;
 }
 
 .stat-leave {
-    border-top-color: #2196f3;
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(23, 162, 184, 0.05) 100%);
+    border-top: 3px solid #17a2b8;
 }
 
 .stat-late {
-    border-top-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%);
+    border-top: 3px solid #ffc107;
 }
 
 .stat-discount {
-    border-top-color: #9c27b0;
+    background: linear-gradient(135deg, rgba(142, 124, 195, 0.1) 0%, rgba(142, 124, 195, 0.05) 100%);
+    border-top: 3px solid #8e7cc3;
 }
 
 .stat-warning {
-    border-top-color: #f57c00;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.05) 100%);
+    border-top: 3px solid #dc3545;
 }
 
 .stat-number {
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 2.5rem;
+    font-weight: 700;
     color: var(--primary-color);
     margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--dark-color);
     margin-bottom: var(--spacing-xs);
@@ -142,7 +231,7 @@ body {
     color: var(--text-light);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -160,6 +249,7 @@ body {
 
 .attendance-section {
     background: white;
+    box-shadow: var(--shadow-md);
 }
 
 .attendance-status {
@@ -168,7 +258,7 @@ body {
     align-items: center;
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-md);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 .status-display {
@@ -184,13 +274,15 @@ body {
 }
 
 .status-present {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
 }
 
 .status-absent {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
 .time-display {
@@ -198,14 +290,15 @@ body {
 }
 
 .current-time {
-    font-size: var(--font-size-2xl);
-    font-weight: bold;
+    font-size: 1.75rem;
+    font-weight: 700;
     color: var(--primary-color);
     margin-bottom: var(--spacing-xs);
 }
 
 .current-date {
     color: var(--text-light);
+    font-size: var(--font-size-sm);
 }
 
 .attendance-buttons {
@@ -217,19 +310,20 @@ body {
 
 .btn-lg {
     flex-direction: column;
-    height: 120px;
-    border-radius: 12px;
-    font-size: var(--font-size-lg);
+    height: 100px;
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-base);
     font-weight: 600;
 }
 
 .button-icon {
-    font-size: 2rem;
+    font-size: 1.75rem;
     display: block;
+    margin-bottom: var(--spacing-xs);
 }
 
 .last-attendance-info {
-    background-color: var(--light-color);
+    background: linear-gradient(135deg, rgba(91, 78, 219, 0.05) 0%, rgba(91, 78, 219, 0.02) 100%);
     padding: var(--spacing-md);
     border-radius: var(--border-radius);
     border-right: 3px solid var(--primary-color);
@@ -238,6 +332,7 @@ body {
 .last-attendance-info p {
     margin-bottom: var(--spacing-xs);
     font-size: var(--font-size-sm);
+    color: var(--text-color);
 }
 
 .last-attendance-info span {
@@ -251,6 +346,14 @@ body {
 
 .employee-card {
     background: white;
+    box-shadow: var(--shadow-md);
+}
+
+.employee-card h2 {
+    color: var(--dark-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
 }
 
 .info-grid {
@@ -274,11 +377,13 @@ body {
 .info-item .label {
     font-weight: 600;
     color: var(--dark-color);
+    font-size: var(--font-size-sm);
 }
 
 .info-item .value {
     color: var(--primary-color);
     font-weight: 500;
+    font-size: var(--font-size-sm);
 }
 
 @media (min-width: 768px) {
@@ -289,6 +394,13 @@ body {
     .info-item {
         flex-direction: column;
         align-items: flex-start;
+        border-bottom: none;
+        padding: var(--spacing-md) 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
     }
 
     .info-item .label {
@@ -302,6 +414,14 @@ body {
 
 .attendance-history {
     background: white;
+    box-shadow: var(--shadow-md);
+}
+
+.attendance-history h2 {
+    color: var(--dark-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
 }
 
 .attendance-table {
@@ -311,6 +431,17 @@ body {
 .attendance-table th {
     background-color: var(--primary-color);
     color: white;
+    font-weight: 600;
+}
+
+.attendance-table td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+}
+
+.attendance-table tbody tr:hover {
+    background-color: var(--light-gray);
 }
 
 /* ============================================
@@ -320,7 +451,7 @@ body {
 .tabs-container {
     background: white;
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
 }
 
@@ -329,6 +460,8 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-bottom: 2px solid var(--border-color);
+    gap: 0;
+    background: white;
 }
 
 .tab-btn {
@@ -343,22 +476,24 @@ body {
     transition: var(--transition);
     white-space: nowrap;
     border-bottom: 3px solid transparent;
-    min-width: 150px;
+    min-width: 120px;
 }
 
 .tab-btn.active {
     color: var(--primary-color);
     border-bottom-color: var(--primary-color);
+    background: linear-gradient(to bottom, rgba(91, 78, 219, 0.05), transparent);
 }
 
 .tab-btn:hover {
-    background-color: var(--light-color);
+    background-color: var(--light-gray);
+    color: var(--text-color);
 }
 
 .tab-content {
     display: none;
     padding: var(--spacing-lg);
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.2s ease;
 }
 
 .tab-content.active {
@@ -381,23 +516,26 @@ body {
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: var(--spacing-md);
 }
 
 .data-table th {
     background-color: var(--primary-color);
     color: white;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
     text-align: right;
     font-weight: 600;
+    font-size: var(--font-size-sm);
 }
 
 .data-table td {
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
     border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
 }
 
 .data-table tbody tr:hover {
-    background-color: var(--light-color);
+    background-color: var(--light-gray);
 }
 
 /* ============================================
@@ -414,12 +552,15 @@ body {
     background: white;
     border-radius: var(--border-radius);
     padding: var(--spacing-lg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .report-card h3 {
     color: var(--primary-color);
     margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: var(--spacing-md);
 }
 
 .report-controls {
@@ -435,7 +576,7 @@ body {
 }
 
 .report-controls .btn {
-    min-width: 120px;
+    min-width: 110px;
 }
 
 .report-table {
@@ -446,6 +587,13 @@ body {
 .report-table th {
     background-color: var(--info-color);
     color: white;
+    padding: var(--spacing-md);
+    font-weight: 600;
+}
+
+.report-table td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* ============================================
@@ -457,16 +605,18 @@ body {
     border-radius: var(--border-radius);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--primary-color);
 }
 
 .settings-section h3 {
     color: var(--primary-color);
     margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
 }
 
 /* ============================================
-   الاستجابية للأجهزة
+   استجابية الأجهزة
    ============================================ */
 
 @media (max-width: 767px) {
@@ -480,7 +630,7 @@ body {
     }
 
     .header-content h1 {
-        font-size: var(--font-size-lg);
+        font-size: 1.125rem;
     }
 
     .user-info {
@@ -489,33 +639,53 @@ body {
     }
 
     .tab-btn {
-        min-width: 120px;
+        min-width: 100px;
         font-size: var(--font-size-sm);
+        padding: var(--spacing-sm);
+    }
+
+    .attendance-buttons {
+        grid-template-columns: 1fr;
     }
 
     .reports-container {
         grid-template-columns: 1fr;
     }
+
+    .welcome-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-section {
+        padding: var(--spacing-md);
+    }
+
+    .stat-card {
+        padding: var(--spacing-md);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
 }
 
 @media (min-width: 768px) {
     .dashboard-main {
-        padding: var(--spacing-xl);
+        padding: var(--spacing-lg);
     }
 
     .reports-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
     }
 }
 
 @media (min-width: 1024px) {
-    .reports-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1200px) {
     .dashboard-main {
-        padding: var(--spacing-xl) var(--spacing-xl);
+        padding: var(--spacing-lg);
+    }
+
+    .reports-container {
+        grid-template-columns: repeat(1, 1fr);
     }
 }

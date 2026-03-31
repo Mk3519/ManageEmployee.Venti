@@ -204,16 +204,46 @@ async function loadAttendanceHistory() {
 
         if (result.success && result.data && Array.isArray(result.data)) {
             displayAttendanceHistory(result.data);
+            
+            // ✅ تحديث حالة Check-In من آخر سجل في Google Sheets
+            updateCheckInStateFromLastRecord(result.data);
         } else {
             // بيانات مؤقتة للاختبار
             displayAttendanceHistory([
                 { date: '2024-03-01', checkIn: '08:05', checkOut: '17:15', status: 'حاضر' },
                 { date: '2024-03-02', checkIn: '08:00', checkOut: '17:00', status: 'حاضر' }
             ]);
+            isCheckedIn = false;
         }
 
     } catch (error) {
         console.error('Error loading attendance history:', error);
+    }
+}
+
+/**
+ * ✅ تحديث حالة الحضور من آخر سجل في Google Sheets
+ * إذا كان آخر سجل check-in بدون check-out = الموظف حاضر حالياً
+ */
+function updateCheckInStateFromLastRecord(records) {
+    if (!records || records.length === 0) {
+        isCheckedIn = false;
+        return;
+    }
+    
+    // آخر سجل (الأحدث أولاً في الترتيب - لأنه معكوس)
+    const lastRecord = records[0];
+    
+    // إذا كان هناك check-in بدون check-out = حاضر
+    const hasCheckIn = lastRecord.checkIn && lastRecord.checkIn.trim() !== '';
+    const hasCheckOut = lastRecord.checkOut && lastRecord.checkOut.trim() !== '';
+    
+    if (hasCheckIn && !hasCheckOut) {
+        isCheckedIn = true;
+        console.log('✅ تم تحديث الحالة: الموظف حاضر حالياً');
+    } else {
+        isCheckedIn = false;
+        console.log('❌ تم تحديث الحالة: الموظف غير حاضر');
     }
 }
 

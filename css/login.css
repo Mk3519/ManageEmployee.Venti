@@ -1,9 +1,9 @@
 /* ============================================
-   تصميم صفحة تسجيل الدخول - Minimalist Modern
+   أنماط صفحة تسجيل الدخول
    ============================================ */
 
 body {
-    background: linear-gradient(135deg, #5b4edb 0%, #4c3bb8 100%);
+    background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -13,20 +13,20 @@ body {
 
 .login-container {
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
 }
 
 .login-card {
     background-color: white;
     border-radius: var(--border-radius);
     padding: var(--spacing-lg);
-    box-shadow: 0 20px 25px rgba(15, 23, 42, 0.15);
-    animation: slideInUp 0.4s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideInUp 0.5s ease;
 }
 
 @keyframes slideInUp {
     from {
-        transform: translateY(20px);
+        transform: translateY(30px);
         opacity: 0;
     }
     to {
@@ -42,14 +42,13 @@ body {
 
 .login-header h1 {
     color: var(--primary-color);
-    font-size: 1.75rem;
+    font-size: var(--font-size-xl);
     margin-bottom: var(--spacing-xs);
-    font-weight: 600;
 }
 
 .login-header p {
     color: var(--text-light);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
     font-weight: 500;
 }
 
@@ -62,9 +61,8 @@ body {
 }
 
 .login-form label {
-    color: var(--dark-color);
-    font-weight: 500;
-    font-size: var(--font-size-sm);
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .password-input-group {
@@ -80,21 +78,19 @@ body {
 
 .toggle-password {
     position: absolute;
-    left: 12px;
+    left: 10px;
     border: none;
     background: none;
     cursor: pointer;
-    font-size: 18px;
-    padding: 8px;
+    font-size: 20px;
+    padding: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-light);
-    transition: var(--transition);
 }
 
 .toggle-password:hover {
-    color: var(--primary-color);
+    opacity: 0.7;
 }
 
 .device-info {
@@ -107,4 +103,22 @@ body {
 .device-info small {
     color: var(--text-light);
     font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   الاستجابية للأجهزة الأكبر
+   ============================================ */
+
+@media (min-width: 768px) {
+    .login-container {
+        max-width: 500px;
+    }
+
+    .login-card {
+        padding: var(--spacing-xl);
+    }
+
+    body {
+        padding: var(--spacing-xl);
+    }
 }

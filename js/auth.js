@@ -350,38 +350,11 @@ function showLoadingSpinner(show = true) {
  * تسجيل الخروج
  */
 function logout() {
-    try {
-        console.log('🔄 جاري تسجيل الخروج...');
-        
-        // ✅ مسح جميع بيانات الجلسة فوراً
-        clearUserSession();
-        console.log('✅ تم مسح البيانات بنجاح');
-        
-        // ✅ إظهار رسالة النجاح مباشرة (بدون تأخير)
-        const alertContainer = document.getElementById('alertContainer');
-        if (alertContainer) {
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success';
-            alert.textContent = '✅ تم تسجيل الخروج بنجاح - جاري التوجيه...';
-            alert.style.animation = 'slideInDown 0.3s ease';
-            alert.style.fontSize = '16px';
-            alert.style.fontWeight = 'bold';
-            alertContainer.appendChild(alert);
-        }
-        
-        console.log('🚀 جاري التوجيه إلى صفحة تسجيل الدخول فوراً...');
-        
-        // ✅ توجيه فوري بدون تأخير - لا نخاطر بأن يضغط المستخدم شيئاً آخر
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 500); // 500ms فقط - كافية لعرض الرسالة
-        
-    } catch (error) {
-        console.error('❌ خطأ في تسجيل الخروج:', error);
-        // حتى لو حدث خطأ، نعيد التوجيه بسرعة
-        console.log('🚀 توجيه فوري بسبب خطأ...');
-        window.location.href = 'index.html';
-    }
+    clearUserSession();
+    showSuccessMessage('تم تسجيل الخروج بنجاح');
+    setTimeout(() => {
+        redirectTo('index.html');
+    }, 1000);
 }
 
 /**

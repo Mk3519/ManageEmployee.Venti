@@ -5,7 +5,7 @@
 class SheetsAPI {
     constructor() {
         // ستحتاج لتعديل هذا الرابط بعد نشر Apps Script
-        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxVj0HZgeLqhKYvaohW-vxdmTKRjCGRDRR960JQh58tFtanzClsv_HuPI03HNT0XyGBCw/exec';
+        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnyVWpQxrkmxNdy6-B_9NBxb56mlv-W8oJ5uwlfJl4JuqhaInmYYHGZbHcei9Tis1lNA/exec';
         
         // ✅ تم تعيينه بنجاح! الآن الاتصال الفعلي يعمل
         this.isConfigured = true;
@@ -42,11 +42,34 @@ class SheetsAPI {
             }).toString();
 
             const response = await retryFetch(`${this.SCRIPT_URL}?${queryString}`);
-            const data = await response.json();
+            
+            // التحقق من أن الاستجابة موجودة
+            if (!response) {
+                throw new Error('لم تتلقَّ استجابة من الخادم');
+            }
+
+            const text = await response.text();
+            
+            // محاولة تحويل النص إلى JSON
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('❌ خطأ في تحويل JSON:', parseError, 'النص:', text);
+                return {
+                    success: false,
+                    message: 'خطأ في معالجة response من الخادم'
+                };
+            }
+
+            console.log(`✅ استجابة ${action}:`, data);
             return data;
         } catch (error) {
-            console.error('خطأ في الطلب:', error);
-            throw new Error('فشل في الاتصال مع تطبيق الويب');
+            console.error('❌ خطأ في الطلب GET:', error);
+            return {
+                success: false,
+                message: 'فشل في الاتصال مع تطبيق الويب: ' + error.message
+            };
         }
     }
 
@@ -74,16 +97,33 @@ class SheetsAPI {
                 muteHttpExceptions: true
             });
 
+            // التحقق من أن الاستجابة موجودة
+            if (!response) {
+                throw new Error('لم تتلقَّ استجابة من الخادم');
+            }
+
             const text = await response.text();
             
+            // محاولة تحويل النص إلى JSON
+            let result;
             try {
-                return JSON.parse(text);
-            } catch (e) {
-                return { success: true, message: text };
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error('❌ خطأ في تحويل JSON:', parseError, 'النص:', text);
+                return {
+                    success: true, 
+                    message: text
+                };
             }
+
+            console.log(`✅ استجابة ${action}:`, result);
+            return result;
         } catch (error) {
-            console.error('خطأ في الطلب:', error);
-            throw new Error('فشل في الاتصال مع تطبيق الويب');
+            console.error('❌ خطأ في الطلب POST:', error);
+            return {
+                success: false,
+                message: 'فشل في الاتصال مع تطبيق الويب: ' + error.message
+            };
         }
     }
 
@@ -108,14 +148,22 @@ class SheetsAPI {
     }
 
     /**
-     * تسجيل حضور
+     * تسجيل حضور مع التحقق من الشروط
      */
     async checkIn(employeeID, deviceID) {
-        return this.post('checkIn', {
-            employeeID: employeeID,
-            deviceID: deviceID,
-            timestamp: new Date().toISOString()
-        });
+        try {
+            // تسجيل الحضور مباشرة (الواجهة الأمامية تفعل التحقق)
+            return this.post('checkIn', {
+                employeeID: employeeID,
+                deviceID: deviceID,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            return {
+                success: false,
+                message: 'خطأ في تسجيل الحضور: ' + error.message
+            };
+        }
     }
 
     /**
@@ -394,9 +442,36 @@ class SheetsAPI {
      * 2- إذا تم نسيان الانصراف يتم عمل انصراف تلقائي ثم حضور جديد
      */
     async checkInConditions(employeeID) {
-        return this.get('checkInConditions', {
-            employeeID: employeeID
-        });
+        try {
+            const result = await this.get('checkInConditions', {
+                employeeID: employeeID
+            });
+
+            // التحقق المتقدم من النتيجة
+            if (result && typeof result === 'object') {
+                // إذا كانت النتيجة من API مباشرة (تحتوي على canCheckIn)
+                if (result.hasOwnProperty('canCheckIn')) {
+                    return result;
+                }
+                // إذا كانت النتيجة success=true لكن بها بيانات
+                if (result.success && result.data) {
+                    return result.data;
+                }
+            }
+
+            // إذا كانت النتيجة فارغة أو غير متوقعة
+            console.error('❌ استجابة غير متوقعة من API:', result);
+            return {
+                canCheckIn: false,
+                message: 'فشل التحقق من شروط الحضور - استجابة API غير صحيحة'
+            };
+        } catch (error) {
+            console.error('❌ خطأ في دالة checkInConditions:', error);
+            return {
+                canCheckIn: false,
+                message: 'خطأ في الاتصال بالخادم: ' + error.message
+            };
+        }
     }
 
     /**
@@ -421,50 +496,7 @@ class SheetsAPI {
         });
     }
 
-    /**
-     * ردود محاكاة للاختبار (عندما لا يكون Apps Script مكوناً)
-     */
-    mockResponse(method, action, data) {
-        console.log(`[MOCK ${method.toUpperCase()}] ${action}`, data);
 
-        const responses = {
-            'login': { success: true, message: 'تم تسجيل الدخول بنجاح', userRole: 'employee' },
-            'adminLogin': { success: true, message: 'تم تسجيل دخول المدير بنجاح', userRole: 'admin' },
-            'checkIn': { success: true, message: 'تم تسجيل الحضور بنجاح' },
-            'checkOut': { success: true, message: 'تم تسجيل الانصراف بنجاح' },
-            'getEmployee': {
-                success: true,
-                data: {
-                    id: '001',
-                    name: 'أحمد محمد',
-                    position: 'مهندس',
-                    salary: 5000,
-                    phone: '0501234567',
-                    email: 'ahmed@example.com'
-                }
-            },
-            'getStats': {
-                success: true,
-                data: {
-                    totalAttendance: 20,
-                    totalAbsence: 2,
-                    totalLeave: 1,
-                    totalLate: 3,
-                    totalDiscount: 500,
-                    totalWarning: 1
-                }
-            },
-            'getAllEmployees': {
-                success: true,
-                data: [
-                    { id: '001', name: 'أحمد محمد', position: 'مهندس', salary: 5000 },
-                    { id: '002', name: 'فاطمة علي', position: 'محاسبة', salary: 4500 }
-                ]
-            }
-        };
-
-        return responses[action] || { success: true, message: `محاكاة: ${action}` };
-    }
 }
 
 // إنشاء نسخة عامة من الفئة

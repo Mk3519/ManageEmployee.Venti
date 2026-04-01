@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#5b4edb">
+    <meta name="theme-color" content="#1e88e5">
     <title>لوحة الموظف - نظام الحضور والانصراف</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -13,21 +12,11 @@
     <div class="dashboard-container">
         <!-- الشريط العلوي (Header) -->
         <header class="dashboard-header">
-            <!-- قسم الترحيب في الهيدر -->
-            <div class="welcome-section">
-                <div class="welcome-content">
-                    <div class="welcome-icon">
-                        <i class="fas fa-wave-hand"></i>
-                    </div>
-                    <div class="welcome-text">
-                        <h2>أهلاً وسهلاً</h2>
-                        <p id="welcomeMessage">مرحباً بك <span id="welcomeName">--</span></p>
-                        <p class="welcome-subtitle">نتمنى لك يوماً عملياً منتجاً وسعيداً</p>
-                    </div>
-                    <button id="logoutBtn" class="btn btn-logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>تسجيل الخروج</span>
-                    </button>
+            <div class="header-content">
+                <h1>لوحة الموظف</h1>
+                <div class="user-info">
+                    <span id="userName" class="user-name">--</span>
+                    <button id="logoutBtn" class="btn btn-logout">تسجيل الخروج</button>
                 </div>
             </div>
         </header>
@@ -83,11 +72,11 @@
 
                 <div class="attendance-buttons">
                     <button id="checkInBtn" class="btn btn-success btn-lg">
-                        <i class="fas fa-sign-in-alt icon-lg\"></i>
+                        <span class="button-icon">📍</span>
                         <span>حضور</span>
                     </button>
                     <button id="checkOutBtn" class="btn btn-warning btn-lg" disabled>
-                        <i class="fas fa-sign-out-alt icon-lg"></i>
+                        <span class="button-icon">🚪</span>
                         <span>انصراف</span>
                     </button>
                 </div>

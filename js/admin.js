@@ -627,11 +627,8 @@ function saveWorkTimings() {
 }
 
 /**
- * تنسيق العملة
+ * تنسيق العملة بـ الجنيه المصري
  */
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('ar-SA', {
-        style: 'currency',
-        currency: 'SAR'
-    }).format(amount);
+    return formatEgyptianCurrency(amount);
 }

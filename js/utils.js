@@ -41,39 +41,20 @@ function removeFromLocalStorage(key) {
  * تنظيف localStorage لهذا المستخدم
  */
 function clearUserSession() {
-    try {
-        // حفظ userID قبل حذفه
-        const userID = getFromLocalStorage('userID');
-        
-        // ✅ حذف جميع بيانات المستخدم الأساسية
-        removeFromLocalStorage('userToken');
-        removeFromLocalStorage('userRole');
-        removeFromLocalStorage('userID');
-        removeFromLocalStorage('userName');
-        removeFromLocalStorage('userEmail');
-        removeFromLocalStorage('userPosition');
-        removeFromLocalStorage('userSalary');
-        removeFromLocalStorage('deviceID');
-        removeFromLocalStorage('approvedDevices');
-        
-        // ✅ حذف بيانات الجلسة
-        removeFromLocalStorage('sessionCreatedAt');
-        removeFromLocalStorage('sessionExpiresAt');
-        
-        // ✅ حذف بيانات الموقع الجغرافي
-        removeFromLocalStorage('office_latitude');
-        removeFromLocalStorage('office_longitude');
-        removeFromLocalStorage('max_distance_meters');
-        
-        // ✅ حذف حالة الحضور المحفوظة
-        if (userID) {
-            removeFromLocalStorage(`checkInState_${userID}`);
-            removeFromLocalStorage(`approvedDevice_${userID}`);
-        }
-        
-        console.log('✅ تم مسح جميع بيانات الجلسة بنجاح');
-    } catch (error) {
-        console.error('❌ خطأ في مسح بيانات الجلسة:', error);
+    // حفظ userID قبل حذفه
+    const userID = getFromLocalStorage('userID');
+    
+    removeFromLocalStorage('userToken');
+    removeFromLocalStorage('userRole');
+    removeFromLocalStorage('userID');
+    removeFromLocalStorage('userName');
+    removeFromLocalStorage('userEmail');
+    removeFromLocalStorage('deviceID');
+    removeFromLocalStorage('approvedDevices');
+    
+    // حذف حالة الحضور المحفوظة
+    if (userID) {
+        removeFromLocalStorage(`checkInState_${userID}`);
     }
 }
 
@@ -255,19 +236,9 @@ function formatEgyptianCurrency(amount) {
  * التحقق من مصادقة المستخدم
  */
 function isUserAuthenticated() {
-    try {
-        const token = getFromLocalStorage('userToken');
-        const role = getFromLocalStorage('userRole');
-        const userID = getFromLocalStorage('userID');
-        
-        // ✅ يجب أن تكون الثلاثة موجودة
-        const isAuth = !!(token && role && userID);
-        console.log(`🔐 حالة المصادقة: ${isAuth ? '✅ مصرح' : '❌ غير مصرح'}`);
-        return isAuth;
-    } catch (error) {
-        console.error('❌ خطأ في التحقق من المصادقة:', error);
-        return false;
-    }
+    const token = getFromLocalStorage('userToken');
+    const role = getFromLocalStorage('userRole');
+    return !!token && !!role;
 }
 
 /**

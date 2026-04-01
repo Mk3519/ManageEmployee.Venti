@@ -328,7 +328,10 @@ function validateCheckInConditions(employeeID, timestamp) {
     for (let i = data.length - 1; i > 0; i--) {
       if (String(data[i][0]) === String(employeeID)) {
         lastCheckInRow = i;
-        lastCheckInDate = String(data[i][1]);
+        // ✅ تنسيق التاريخ بصيغة DD/MM/YYYY إذا كان Date، أو استخدم كما هو إذا كان string
+        lastCheckInDate = typeof data[i][1] === 'object' && data[i][1] instanceof Date
+          ? formatDate(data[i][1])
+          : String(data[i][1]);
         lastCheckInHasCheckOut = data[i][3] !== ''; // إذا كان في العمود 4 شيء = يوجد check-out
         break;
       }
@@ -344,7 +347,7 @@ function validateCheckInConditions(employeeID, timestamp) {
     }
     
     // الحالة 1: يوجد check-in في نفس اليوم
-    if (lastCheckInDate === currentDate) {
+    if (isSameDateString(lastCheckInDate, currentDate)) {
       if (lastCheckInHasCheckOut) {
         // يوجد حضور و انصراف في نفس اليوم - ممنوع حضور ثاني
         return {
@@ -378,7 +381,8 @@ function validateCheckInConditions(employeeID, timestamp) {
     return {
       canCheckIn: true,
       autoCheckOut: false,
-      reason: 'normal_check_in'
+      reason: 'normal_check_in',
+      message: '✅ يمكنك تسجيل الحضور الآن'
     };
     
   } catch(error) {
@@ -462,34 +466,67 @@ function handleCheckOut(e) {
   try {
     const attendanceSheet = ss.getSheetByName('Attendance');
     const data = attendanceSheet.getDataRange().getValues();
-    const date = formatDate(new Date(timestamp));
+    const currentDate = formatDate(new Date(timestamp));
     const time = formatTime(new Date(timestamp));
     
+    Logger.log(`🔍 البحث عن سجل حضور للموظف ${employeeID} في التاريخ ${currentDate}`);
+    
     for (let i = data.length - 1; i > 0; i--) {
-      if (String(data[i][0]) === String(employeeID) && String(data[i][1]) === String(date) && data[i][3] === '') {
-        const checkInTime = new Date('2000-01-01 ' + data[i][2]);
-        const checkOutTime = new Date('2000-01-01 ' + time);
-        const durationMs = checkOutTime - checkInTime;
-        const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(2);
+      if (String(data[i][0]).trim() !== String(employeeID).trim()) {
+        continue; // غير هذا الموظف
+      }
+      
+      // ✅ تحويل آمن للتاريخ
+      let recordDate = data[i][1];
+      if (recordDate instanceof Date) {
+        recordDate = formatDate(recordDate);
+      } else {
+        recordDate = String(recordDate).trim();
+      }
+      
+      Logger.log(`📅 فحص السجل: تاريخ="${recordDate}", حالة check-out="${data[i][3] || ''}"`);
+      
+      // ✅ مقارنة آمنة للتاريخ
+      if (isSameDateString(recordDate, currentDate) && (data[i][3] === '' || data[i][3] === null || data[i][3] === undefined)) {
+        Logger.log(`✅ وُجد سجل حضور بدون انصراف في ${recordDate}`);
         
-        attendanceSheet.getRange(i + 1, 4).setValue(time);
-        attendanceSheet.getRange(i + 1, 5).setValue(durationHours);
-        
-        // 📍 بدون حفظ بيانات الموقع الجغرافي
-        Logger.log('✅ تم تسجيل الانصراف بنجاح (بدون بيانات GPS) - الموظف: ' + employeeID);
-        
-        return jsonResponse({
-          success: true,
-          message: 'تم تسجيل الانصراف بنجاح ✅'
-        });
+        try {
+          const checkInTimeStr = String(data[i][2]).trim();
+          if (!checkInTimeStr || checkInTimeStr === '--') {
+            Logger.log(`⚠️ وقت الحضور فارغ أو غير صحيح: "${checkInTimeStr}"`);
+            continue;
+          }
+          
+          const checkInTime = new Date('2000-01-01 ' + checkInTimeStr);
+          const checkOutTime = new Date('2000-01-01 ' + time);
+          const durationMs = checkOutTime - checkInTime;
+          const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(2);
+          
+          Logger.log(`⏱️ حساب المدة: check-in="${checkInTimeStr}", check-out="${time}", مدة=${durationHours} ساعة`);
+          
+          attendanceSheet.getRange(i + 1, 4).setValue(time);
+          attendanceSheet.getRange(i + 1, 5).setValue(durationHours);
+          
+          Logger.log(`✅ تم تسجيل الانصراف بنجاح - الموظف: ${employeeID} في ${currentDate} الساعة ${time}`);
+          
+          return jsonResponse({
+            success: true,
+            message: '✅ تم تسجيل الانصراف بنجاح'
+          });
+        } catch(calcError) {
+          Logger.log(`⚠️ خطأ في حساب المدة: ${calcError.toString()}`);
+          continue;
+        }
       }
     }
     
+    Logger.log(`❌ لم يتم العثور على سجل حضور بدون انصراف للموظف ${employeeID} في ${currentDate}`);
     return jsonResponse({
       success: false,
-      message: 'لم يتم العثور على تسجيل حضور للانصراف'
+      message: '❌ لم يتم العثور على تسجيل حضور للانصراف. تأكد أنك سجلت حضور أولاً'
     });
   } catch(error) {
+    Logger.log(`❌ خطأ في handleCheckOut: ${error.toString()}`);
     return jsonResponse({
       success: false,
       message: 'خطأ في تسجيل الانصراف: ' + error.toString()
@@ -575,6 +612,8 @@ function handleGetStats(e) {
   const year = parseInt(e.parameter.year) || new Date().getFullYear();
   
   try {
+    Logger.log(`📊 حساب الإحصائيات للموظف ${employeeID} - ${month}/${year}`);
+    
     let stats = {
       totalAttendance: 0,
       totalAbsence: 0,
@@ -585,77 +624,143 @@ function handleGetStats(e) {
       workDays: 22
     };
     
+    // ============================================
     // حساب الحضور
+    // ============================================
     const attendanceSheet = ss.getSheetByName('Attendance');
     const attendanceData = attendanceSheet.getDataRange().getValues();
+    Logger.log(`📋 عدد صفوف الحضور: ${attendanceData.length}`);
     
     for (let i = 1; i < attendanceData.length; i++) {
-      if (String(attendanceData[i][0]) === String(employeeID)) {
-        const dateStr = attendanceData[i][1];
-        if (dateStr) {
-          const dateParts = dateStr.split('/');
+      if (!attendanceData[i][0]) continue; // تخطي الصفوف الفارغة
+      
+      if (String(attendanceData[i][0]).trim() === String(employeeID).trim()) {
+        let dateStr = attendanceData[i][1];
+        
+        if (!dateStr) {
+          Logger.log(`⚠️ تاريخ فارغ في صف الحضور ${i}`);
+          continue;
+        }
+        
+        // تحويل آمن للتاريخ
+        let formattedDate = dateStr;
+        if (dateStr instanceof Date) {
+          formattedDate = formatDate(dateStr);
+        } else {
+          formattedDate = String(dateStr).trim();
+        }
+        
+        try {
+          const dateParts = formattedDate.split('/');
+          if (dateParts.length !== 3) throw new Error('صيغة خاطئة');
+          
           const recordMonth = parseInt(dateParts[1]);
           const recordYear = parseInt(dateParts[2]);
           
           if (recordMonth === month && recordYear === year) {
             stats.totalAttendance++;
+            Logger.log(`✅ حضور: ${formattedDate}`);
             
             // فحص التأخير
             const checkInTime = attendanceData[i][2];
-            if (checkInTime && checkInTime > '08:00') {
+            if (checkInTime && String(checkInTime).trim() > '08:00') {
               stats.totalLate++;
+              Logger.log(`⏰ تأخير: ${checkInTime}`);
             }
           }
+        } catch(e) {
+          Logger.log(`⚠️ خطأ في التاريخ "${formattedDate}": ${e.toString()}`);
         }
       }
     }
     
+    // ============================================
     // حساب الجزاءات والإنذارات
-    const disciplinesSheet = ss.getSheetByName('Disciplines');
-    const disciplinesData = disciplinesSheet.getDataRange().getValues();
-    
-    for (let i = 1; i < disciplinesData.length; i++) {
-      if (String(disciplinesData[i][0]) === String(employeeID)) {
-        const dateStr = disciplinesData[i][3];
-        if (dateStr) {
-          const dateParts = dateStr.split('/');
-          const recordMonth = parseInt(dateParts[1]);
-          const recordYear = parseInt(dateParts[2]);
+    // ============================================
+    try {
+      const disciplinesSheet = ss.getSheetByName('Disciplines');
+      const disciplinesData = disciplinesSheet.getDataRange().getValues();
+      Logger.log(`📋 عدد صفوف الجزاءات: ${disciplinesData.length}`);
+      
+      for (let i = 1; i < disciplinesData.length; i++) {
+        if (!disciplinesData[i][0]) continue;
+        
+        if (String(disciplinesData[i][0]).trim() === String(employeeID).trim()) {
+          let dateStr = disciplinesData[i][3];
           
-          if (recordMonth === month && recordYear === year) {
-            if (disciplinesData[i][1] === 'Discount') {
-              stats.totalDiscount += parseInt(disciplinesData[i][2]) || 0;
-            } else if (disciplinesData[i][1] === 'Warning') {
-              stats.totalWarning++;
+          if (!dateStr) continue;
+          
+          let formattedDate = dateStr;
+          if (dateStr instanceof Date) {
+            formattedDate = formatDate(dateStr);
+          } else {
+            formattedDate = String(dateStr).trim();
+          }
+          
+          try {
+            const dateParts = formattedDate.split('/');
+            const recordMonth = parseInt(dateParts[1]);
+            const recordYear = parseInt(dateParts[2]);
+            
+            if (recordMonth === month && recordYear === year) {
+              const type = String(disciplinesData[i][1]).trim();
+              if (type === 'Discount') {
+                const amount = parseInt(disciplinesData[i][2]) || 0;
+                stats.totalDiscount += amount;
+                Logger.log(`💰 خصم: ${amount} ج.م`);
+              } else if (type === 'Warning') {
+                stats.totalWarning++;
+                Logger.log(`⚠️ إنذار`);
+              }
             }
+          } catch(e) {
+            Logger.log(`⚠️ خطأ في جزاء: ${e.toString()}`);
           }
         }
       }
+    } catch(e) {
+      Logger.log(`❌ خطأ في قراءة جدول الجزاءات: ${e.toString()}`);
     }
     
+    // ============================================
     // حساب الإجازات
-    const leaveSheet = ss.getSheetByName('Leave');
-    const leaveData = leaveSheet.getDataRange().getValues();
-    
-    for (let i = 1; i < leaveData.length; i++) {
-      if (String(leaveData[i][0]) === String(employeeID)) {
-        if (leaveData[i][5] === 'Approved' || leaveData[i][5] === 'Active') {
-          stats.totalLeave += parseInt(leaveData[i][2]) || 0;
+    // ============================================
+    try {
+      const leaveSheet = ss.getSheetByName('Leave');
+      const leaveData = leaveSheet.getDataRange().getValues();
+      Logger.log(`📋 عدد صفوف الإجازات: ${leaveData.length}`);
+      
+      for (let i = 1; i < leaveData.length; i++) {
+        if (!leaveData[i][0]) continue;
+        
+        if (String(leaveData[i][0]).trim() === String(employeeID).trim()) {
+          const status = String(leaveData[i][5]).trim();
+          if (status === 'Approved' || status === 'Active') {
+            const days = parseInt(leaveData[i][2]) || 0;
+            stats.totalLeave += days;
+            Logger.log(`🏖️ إجازة: ${days} يوم (${status})`);
+          }
         }
       }
+    } catch(e) {
+      Logger.log(`❌ خطأ في قراءة جدول الإجازات: ${e.toString()}`);
     }
     
     // حساب الغياب
     stats.totalAbsence = Math.max(0, stats.workDays - stats.totalAttendance - stats.totalLeave);
     
+    Logger.log(`📊 الإحصائيات النهائية: ${JSON.stringify(stats)}`);
+    
     return jsonResponse({
       success: true,
       data: stats
     });
+    
   } catch(error) {
+    Logger.log(`❌ خطأ في handleGetStats: ${error.toString()}`);
     return jsonResponse({
       success: false,
-      message: 'خطأ: ' + error.toString()
+      message: 'خطأ في حساب الإحصائيات: ' + error.toString()
     });
   }
 }
@@ -670,36 +775,84 @@ function handleGetAttendanceHistory(e) {
     const data = attendanceSheet.getDataRange().getValues();
     const history = [];
     
+    Logger.log(`🔍 البحث عن سجلات الموظف ${employeeID} للشهر ${month}/${year}`);
+    
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(employeeID)) {
-        const dateStr = data[i][1];
-        if (dateStr) {
-          const dateParts = dateStr.split('/');
+      if (String(data[i][0]).trim() === String(employeeID).trim()) {
+        let dateStr = data[i][1];
+        
+        if (!dateStr) {
+          Logger.log(`⚠️ تاريخ فارغ في الصف ${i}`);
+          continue;
+        }
+        
+        // تحويل آمن للتاريخ إلى صيغة DD/MM/YYYY
+        let formattedDate = dateStr;
+        if (dateStr instanceof Date) {
+          formattedDate = formatDate(dateStr);
+        } else {
+          formattedDate = String(dateStr).trim();
+        }
+        
+        Logger.log(`📅 معالجة التاريخ: "${formattedDate}"`);
+        
+        try {
+          const dateParts = formattedDate.split('/');
+          if (dateParts.length !== 3) {
+            Logger.log(`❌ صيغة التاريخ غير صحيحة: "${formattedDate}"`);
+            continue;
+          }
+          
           const recordMonth = parseInt(dateParts[1]);
           const recordYear = parseInt(dateParts[2]);
           
+          // مقارنة الشهر والسنة
           if (recordMonth === month && recordYear === year) {
-            history.push({
-              date: data[i][1],
-              checkIn: data[i][2],
-              checkOut: data[i][3],
-              duration: data[i][4],
-              deviceID: data[i][5],
-              status: data[i][6]
-            });
+            // ✅ تحويل آمن للأوقات من Date objects إلى strings
+            let checkInTime = data[i][2];
+            if (checkInTime instanceof Date) {
+              checkInTime = formatTime(checkInTime);
+            } else {
+              checkInTime = String(checkInTime).trim() || '--';
+            }
+            
+            let checkOutTime = data[i][3];
+            if (checkOutTime instanceof Date) {
+              checkOutTime = formatTime(checkOutTime);
+            } else {
+              checkOutTime = String(checkOutTime).trim() || '--';
+            }
+            
+            const record = {
+              date: formattedDate,
+              checkIn: checkInTime,
+              checkOut: checkOutTime,
+              duration: data[i][4] || '--',
+              deviceID: data[i][5] || '--',
+              status: data[i][6] || '--'
+            };
+            
+            Logger.log(`✅ تم إضافة سجل: ${JSON.stringify(record)}`);
+            history.push(record);
           }
+        } catch(e) {
+          Logger.log(`⚠️ خطأ في معالجة التاريخ "${formattedDate}": ${e.toString()}`);
         }
       }
     }
     
+    Logger.log(`✅ تم جلب ${history.length} سجل للموظف ${employeeID}`);
+    
     return jsonResponse({
       success: true,
-      data: history.reverse()
+      data: history.reverse() // الأحدث أولاً
     });
+    
   } catch(error) {
+    Logger.log(`❌ خطأ في handleGetAttendanceHistory: ${error.toString()}`);
     return jsonResponse({
       success: false,
-      message: 'خطأ: ' + error.toString()
+      message: 'خطأ في جلب سجل الحضور: ' + error.toString()
     });
   }
 }
@@ -1424,7 +1577,7 @@ function handleRejectDeviceRequest(e) {
 // ============================================
 
 /**
- * تنسيق التاريخ بصيغة يوم/شهر/سنة
+ * تنسيق التاريخ بصيغة يوم/شهر/سنة (مصري)
  */
 function formatDate(dateObj) {
   const day = String(dateObj.getDate()).padStart(2, '0');
@@ -1434,12 +1587,87 @@ function formatDate(dateObj) {
 }
 
 /**
- * تنسيق الوقت بصيغة ساعة:دقيقة
+ * تنسيق الوقت بصيغة ساعة:دقيقة:ثانية
  */
 function formatTime(dateObj) {
   const hours = String(dateObj.getHours()).padStart(2, '0');
   const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * مقارنة التاريخين - هل متساويان؟ (صيغة DD/MM/YYYY)
+ * ✅ تتعامل مع Date objects و strings بصيغ مختلفة
+ */
+function isSameDateString(dateStr1, dateStr2) {
+  // إذا كان أحد النصين فارغاً أو غير موجود
+  if (!dateStr1 || !dateStr2) {
+    Logger.log('⚠️ isSameDateString: كل أحد التاريخ فارغ');
+    return false;
+  }
+  
+  try {
+    // تحويل Date objects إلى strings بصيغة DD/MM/YYYY
+    let date1String = dateStr1;
+    let date2String = dateStr2;
+    
+    // إذا كانت Date object
+    if (dateStr1 instanceof Date) {
+      date1String = formatDate(dateStr1);
+    }
+    if (dateStr2 instanceof Date) {
+      date2String = formatDate(dateStr2);
+    }
+    
+    // تحويل إلى string بشكل آمن
+    date1String = String(date1String).trim();
+    date2String = String(date2String).trim();
+    
+    Logger.log(`📅 مقارنة التواريخ: "${date1String}" مع "${date2String}"`);
+    
+    // إذا لم تكن بصيغة DD/MM/YYYY، حاول تحويلها
+    if (!date1String.includes('/')) {
+      try {
+        const d1 = new Date(date1String);
+        date1String = formatDate(d1);
+      } catch(e) {
+        Logger.log('❌ لا يمكن تحويل التاريخ الأول: ' + date1String);
+        return false;
+      }
+    }
+    
+    if (!date2String.includes('/')) {
+      try {
+        const d2 = new Date(date2String);
+        date2String = formatDate(d2);
+      } catch(e) {
+        Logger.log('❌ لا يمكن تحويل التاريخ الثاني: ' + date2String);
+        return false;
+      }
+    }
+    
+    // تقسيم والتحقق من الطول
+    const date1Parts = date1String.split('/');
+    const date2Parts = date2String.split('/');
+    
+    if (date1Parts.length !== 3 || date2Parts.length !== 3) {
+      Logger.log('❌ صيغة التاريخ غير صحيحة');
+      return false;
+    }
+    
+    // مقارنة اليوم والشهر والسنة
+    const result = date1Parts[0] === date2Parts[0] && 
+                   date1Parts[1] === date2Parts[1] && 
+                   date1Parts[2] === date2Parts[2];
+    
+    Logger.log(`✅ نتيجة المقارنة: ${result}`);
+    return result;
+    
+  } catch(error) {
+    Logger.log('❌ خطأ في isSameDateString: ' + error.toString());
+    return false;
+  }
 }
 
 function getEmployeeName(employeeID) {

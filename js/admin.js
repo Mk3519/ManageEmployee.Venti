@@ -145,13 +145,29 @@ function setupTabs() {
  * إعداد مستمعي الأحداث
  */
 function setupAdminEventListeners() {
-    // زر تسجيل الخروج
+    // زر تسجيل الخروج - محسّن
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            
+            // ✅ تأثير بصري فوري - تعطيل الزر
+            logoutBtn.disabled = true;
+            logoutBtn.style.opacity = '0.5';
+            logoutBtn.textContent = 'جاري الخروج...';
+            logoutBtn.style.cursor = 'not-allowed';
+            
+            // ✅ ظهور تأكيد سريع
             if (confirm('هل تريد تسجيل الخروج؟')) {
-                logout();
+                console.log('✅ المستخدم أكد الخروج - استدعاء logout()');
+                logout(); // استدعاء الدالة مباشرة
+            } else {
+                // ✅ إعادة حالة الزر إذا ألغى المستخدم
+                logoutBtn.disabled = false;
+                logoutBtn.style.opacity = '1';
+                logoutBtn.textContent = 'تسجيل الخروج';
+                logoutBtn.style.cursor = 'pointer';
+                console.log('❌ المستخدم ألغى الخروج');
             }
         });
     }

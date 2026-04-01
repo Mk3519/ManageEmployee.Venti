@@ -138,29 +138,69 @@ function formatTime(date) {
 }
 
 /**
- * تنسيق التاريخ بصيغة YYYY-MM-DD
+ * تنسيق التاريخ بصيغة DD/MM/YYYY (مصري)
  */
 function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    // إذا كان الإدخال نص، حاول تحويله لـ Date
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
     const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
 /**
- * تنسيق التاريخ والوقت بصيغة عربية
+ * تنسيق التاريخ والوقت بصيغة عربية (مصري)
  */
 function formatDateTimeArabic(date) {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return date.toLocaleDateString('ar-SA', options);
+    return date.toLocaleDateString('ar-EG', options);
 }
 
 /**
- * تنسيق التاريخ بصيغة عربية
+ * تنسيق التاريخ بصيغة عربية (مصري)
  */
 function formatDateArabic(date) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('ar-SA', options);
+    return date.toLocaleDateString('ar-EG', options);
+}
+
+/**
+ * تحويل التاريخ من صيغة DD/MM/YYYY إلى Date Object
+ */
+function parseEgyptianDate(dateString) {
+    if (!dateString || typeof dateString !== 'string') {
+        return null;
+    }
+    const parts = dateString.split('/');
+    if (parts.length !== 3) {
+        return null;
+    }
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month - 1, day);
+}
+
+/**
+ * مقارنة التاريخين - هل متساويان؟
+ */
+function isSameDate(date1, date2) {
+    // تحويل النصوص إلى Date إذا لزم الأمر
+    if (typeof date1 === 'string') {
+        date1 = parseEgyptianDate(date1);
+    }
+    if (typeof date2 === 'string') {
+        date2 = parseEgyptianDate(date2);
+    }
+    
+    if (!date1 || !date2) return false;
+    
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
 }
 
 /**
@@ -178,6 +218,18 @@ function getMinutesDifference(startTime, endTime) {
 function getHoursDifference(startTime, endTime) {
     const minutes = getMinutesDifference(startTime, endTime);
     return (minutes / 60).toFixed(2);
+}
+
+/**
+ * تنسيق العملة بـ الجنيه المصري (EGP)
+ */
+function formatEgyptianCurrency(amount) {
+    return new Intl.NumberFormat('ar-EG', {
+        style: 'currency',
+        currency: 'EGP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
 }
 
 /**

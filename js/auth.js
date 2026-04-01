@@ -350,11 +350,31 @@ function showLoadingSpinner(show = true) {
  * تسجيل الخروج
  */
 function logout() {
-    clearUserSession();
-    showSuccessMessage('تم تسجيل الخروج بنجاح');
-    setTimeout(() => {
-        redirectTo('index.html');
-    }, 1000);
+    try {
+        console.log('🔄 جاري تسجيل الخروج...');
+        
+        // ✅ مسح جميع بيانات الجلسة
+        clearUserSession();
+        
+        console.log('✅ تم مسح البيانات بنجاح');
+        
+        // ✅ إظهار رسالة النجاح
+        showSuccessMessage('تم تسجيل الخروج بنجاح', 2000);
+        
+        // ✅ الانتظار قليلاً ثم التوجيه إلى صفحة login
+        setTimeout(() => {
+            console.log('🚀 جاري التوجيه إلى صفحة تسجيل الدخول...');
+            window.location.href = 'index.html';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('❌ خطأ في تسجيل الخروج:', error);
+        showErrorMessage('حدث خطأ أثناء تسجيل الخروج');
+        // إجبار التوجيه حتى في حالة الخطأ
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 2000);
+    }
 }
 
 /**

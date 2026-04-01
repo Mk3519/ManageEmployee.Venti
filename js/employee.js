@@ -127,7 +127,7 @@ function displayEmployeeData() {
         'empID': employeeData.id,
         'empName': employeeData.name,
         'empPosition': employeeData.position || '--',
-        'empSalary': formatCurrency(employeeData.salary),
+        'empSalary': formatEgyptianCurrency(employeeData.salary),
         'empPhone': employeeData.phone || '--',
         'empEmail': employeeData.email || '--'
     };
@@ -138,12 +138,6 @@ function displayEmployeeData() {
             element.textContent = value;
         }
     });
-
-    // تحديث الرسالة الترحيبية
-    const welcomeNameElement = document.getElementById('welcomeName');
-    if (welcomeNameElement) {
-        welcomeNameElement.textContent = employeeData.name;
-    }
 }
 
 /**
@@ -154,16 +148,18 @@ async function loadEmployeeStats() {
         const userID = getUserID();
         const result = await sheetsAPI.getEmployeeStats(userID);
 
-        if (result.success && result.data) {
+        if (result && result.success && result.data) {
             employeeStats = result.data;
+            console.log('✅ تم تحميل الإحصائيات بنجاح', employeeStats);
         } else {
-            // بيانات مؤقتة للاختبار
+            // بيانات مؤقتة احتياطية
+            console.warn('⚠️ استخدام بيانات احتياطية للإحصائيات');
             employeeStats = {
-                totalAttendance: 18,
-                totalAbsence: 2,
-                totalLeave: 1,
-                totalLate: 2,
-                totalDiscount: 300,
+                totalAttendance: 0,
+                totalAbsence: 0,
+                totalLeave: 0,
+                totalLate: 0,
+                totalDiscount: 0,
                 totalWarning: 0
             };
         }
@@ -172,8 +168,17 @@ async function loadEmployeeStats() {
         displayStatistics();
 
     } catch (error) {
-        console.error('Error loading stats:', error);
-        showWarningMessage('فشل تحميل الإحصائيات');
+        console.error('❌ خطأ في تحميل الإحصائيات:', error);
+        showErrorMessage('فشل تحميل الإحصائيات');
+        employeeStats = {
+            totalAttendance: 0,
+            totalAbsence: 0,
+            totalLeave: 0,
+            totalLate: 0,
+            totalDiscount: 0,
+            totalWarning: 0
+        };
+        displayStatistics();
     }
 }
 
@@ -208,22 +213,39 @@ async function loadAttendanceHistory() {
         const userID = getUserID();
         const result = await sheetsAPI.getAttendanceHistory(userID);
 
-        if (result.success && result.data && Array.isArray(result.data)) {
-            displayAttendanceHistory(result.data);
+        // التحقق من نجاح الطلب
+        if (result && result.success && result.data && Array.isArray(result.data)) {
+            // تصفية البيانات الفارغة
+            const validRecords = result.data.filter(record => record.date && record.date.trim() !== '');
             
-            // ✅ تحديث حالة Check-In من آخر سجل في Google Sheets
-            updateCheckInStateFromLastRecord(result.data);
+            if (validRecords.length > 0) {
+                // ✅ البيانات تأتي مرتبة من AppsScript بالفعل (الأحدث أولاً)
+                // لا نعكسها مرة أخرى!
+                console.log(`📊 تم الحصول على ${validRecords.length} سجل حضور`);
+                console.log(`🔝 آخر سجل (الأحدث): ${validRecords[0]?.date} - Check-in: ${validRecords[0]?.checkIn || '--'} - Check-out: ${validRecords[0]?.checkOut || '--'}`);
+                
+                displayAttendanceHistory(validRecords);
+                updateCheckInStateFromLastRecord(validRecords);
+                console.log('✅ تم تحميل سجل الحضور بنجاح');
+            } else {
+                console.warn('⚠️ لا توجد بيانات حضور للعرض');
+                displayAttendanceHistory([]);
+                isCheckedIn = false;
+                updateAttendanceStatus();
+            }
         } else {
-            // بيانات مؤقتة للاختبار
-            displayAttendanceHistory([
-                { date: '2024-03-01', checkIn: '08:05', checkOut: '17:15', status: 'حاضر' },
-                { date: '2024-03-02', checkIn: '08:00', checkOut: '17:00', status: 'حاضر' }
-            ]);
+            // معالجة الخطأ
+            console.error('❌ فشل في جلب بيانات الحضور:', result?.message || result);
+            displayAttendanceHistory([]);
             isCheckedIn = false;
+            updateAttendanceStatus();
         }
 
     } catch (error) {
-        console.error('Error loading attendance history:', error);
+        console.error('❌ خطأ في تحميل سجل الحضور:', error);
+        displayAttendanceHistory([]);
+        isCheckedIn = false;
+        updateAttendanceStatus();
     }
 }
 
@@ -234,23 +256,67 @@ async function loadAttendanceHistory() {
 function updateCheckInStateFromLastRecord(records) {
     if (!records || records.length === 0) {
         isCheckedIn = false;
+        console.log('⚠️ لا توجد سجلات للتحقق منها');
+        updateAttendanceStatus();
         return;
     }
     
-    // آخر سجل (الأحدث أولاً في الترتيب - لأنه معكوس)
+    // آخر سجل (الأحدث أولاً بعد الترتيب)
     const lastRecord = records[0];
     
-    // إذا كان هناك check-in بدون check-out = حاضر
-    const hasCheckIn = lastRecord.checkIn && lastRecord.checkIn.trim() !== '';
-    const hasCheckOut = lastRecord.checkOut && lastRecord.checkOut.trim() !== '';
+    if (!lastRecord) {
+        isCheckedIn = false;
+        console.log('⚠️ السجل الأخير فارغ');
+        updateAttendanceStatus();
+        return;
+    }
     
+    // ✅ معالجة آمنة للبيانات - تحويل Date objects إلى strings
+    let checkInValue = '';
+    if (lastRecord.checkIn) {
+        if (typeof lastRecord.checkIn === 'object' && lastRecord.checkIn instanceof Date) {
+            // تحويل Date object إلى نص الوقت
+            checkInValue = lastRecord.checkIn.toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } else {
+            checkInValue = String(lastRecord.checkIn).trim();
+        }
+    }
+    
+    let checkOutValue = '';
+    if (lastRecord.checkOut) {
+        if (typeof lastRecord.checkOut === 'object' && lastRecord.checkOut instanceof Date) {
+            checkOutValue = lastRecord.checkOut.toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } else {
+            checkOutValue = String(lastRecord.checkOut).trim();
+        }
+    }
+    
+    const hasCheckIn = checkInValue !== '' && checkInValue !== '--';
+    const hasCheckOut = checkOutValue !== '' && checkOutValue !== '--';
+    
+    console.log(`📍 آخر سجل: ${lastRecord.date}`);
+    console.log(`  ✓ Check-in: ${checkInValue || 'خالي'}`);
+    console.log(`  ✓ Check-out: ${checkOutValue || 'خالي'}`);
+    
+    // إذا كان هناك check-in بدون check-out = حاضر
     if (hasCheckIn && !hasCheckOut) {
         isCheckedIn = true;
-        console.log('✅ تم تحديث الحالة: الموظف حاضر حالياً');
+        console.log('✅ الحالة: حاضر حالياً');
     } else {
         isCheckedIn = false;
-        console.log('❌ تم تحديث الحالة: الموظف غير حاضر');
+        console.log('❌ الحالة: غير حاضر');
     }
+    
+    // تحديث الشاشة
+    updateAttendanceStatus();
 }
 
 /**
@@ -268,11 +334,39 @@ function displayAttendanceHistory(records) {
     }
 
     records.forEach(record => {
+        // ✅ معالجة آمنة للبيانات - تحويل Date objects إلى strings
+        let checkInDisplay = '--';
+        if (record.checkIn) {
+            if (typeof record.checkIn === 'object' && record.checkIn instanceof Date) {
+                // تحويل Date object إلى صيغة الوقت فقط
+                checkInDisplay = record.checkIn.toLocaleTimeString('ar-EG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } else {
+                checkInDisplay = String(record.checkIn).trim() || '--';
+            }
+        }
+        
+        let checkOutDisplay = '--';
+        if (record.checkOut) {
+            if (typeof record.checkOut === 'object' && record.checkOut instanceof Date) {
+                checkOutDisplay = record.checkOut.toLocaleTimeString('ar-EG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } else {
+                checkOutDisplay = String(record.checkOut).trim() || '--';
+            }
+        }
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${record.date}</td>
-            <td>${record.checkIn || '--'}</td>
-            <td>${record.checkOut || '--'}</td>
+            <td>${checkInDisplay}</td>
+            <td>${checkOutDisplay}</td>
             <td>
                 <span class="status-badge ${record.status === 'حاضر' ? 'status-present' : 'status-absent'}">
                     ${record.status}
@@ -416,8 +510,11 @@ async function handleCheckIn() {
         console.log('🔍 جاري التحقق من شروط الحضور...');
         const conditionCheck = await sheetsAPI.checkInConditions(userID);
         
-        if (!conditionCheck.canCheckIn) {
-            showErrorMessage(conditionCheck.message || '❌ لا يمكن تسجيل الحضور في الوقت الحالي');
+        // التحقق الآمن من النتيجة
+        if (!conditionCheck || !conditionCheck.canCheckIn) {
+            const errorMsg = conditionCheck?.message || '❌ لا يمكن تسجيل الحضور في الوقت الحالي';
+            console.error('❌ فشل التحقق من شروط الحضور:', conditionCheck);
+            showErrorMessage(errorMsg);
             checkInBtn.disabled = false;
             checkInBtn.innerHTML = '<span class="button-icon">📍</span><span>حضور</span>';
             return;

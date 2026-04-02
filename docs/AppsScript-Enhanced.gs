@@ -402,13 +402,16 @@ function handleCheckIn(e) {
   
   try {
     const attendanceSheet = ss.getSheetByName('Attendance');
-    const date = formatDate(new Date(timestamp));
-    const time = formatTime(new Date(timestamp));
-    
-    // ✅ التحقق من شروط الحضور (الشرط الأساسي)
-    const validation = validateCheckInConditions(employeeID, timestamp);
-    Logger.log('🔍 نتيجة التحقق من الشروط: ' + JSON.stringify(validation));
-    
+
+    // ✅ إنشاء التاريخ بشكل صحيح (بتوقيت مصر)
+    const dateObj = timestamp ? new Date(timestamp) : new Date();
+
+    // ✅ الوقت فقط كـ string
+    const time = Utilities.formatDate(dateObj, "Africa/Cairo", "HH:mm:ss");
+
+    // ✅ التحقق من شروط الحضور
+    const validation = validateCheckInConditions(employeeID, dateObj.toISOString());
+
     if (!validation.canCheckIn) {
       return jsonResponse({
         success: false,
@@ -416,45 +419,48 @@ function handleCheckIn(e) {
         message: validation.message || 'لا يمكن تسجيل الحضور'
       });
     }
-    
-    // إذا كان هناك check-in بدون check-out من أمس، نعمل انصراف تلقائي
+
+    // ✅ في حالة وجود حضور أمس بدون انصراف → يعمل auto checkout
     if (validation.autoCheckOut && validation.autoCheckOutRow) {
-      const yesterdayTime = formatTime(new Date(new Date(timestamp).getTime() - 24 * 60 * 60 * 1000));
+      const yesterday = new Date(dateObj.getTime() - 24 * 60 * 60 * 1000);
+
+      const yesterdayTime = Utilities.formatDate(yesterday, "Africa/Cairo", "HH:mm:ss");
+
       attendanceSheet.getRange(validation.autoCheckOutRow, 4).setValue(yesterdayTime);
-      
-      // حساب المدة
-      const checkInTime = new Date('2000-01-01 ' + attendanceSheet.getRange(validation.autoCheckOutRow, 3).getValue());
-      const checkOutTime = new Date('2000-01-01 ' + yesterdayTime);
-      const durationMs = checkOutTime - checkInTime;
-      const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(2);
-      attendanceSheet.getRange(validation.autoCheckOutRow, 5).setValue(durationHours);
-      
-      Logger.log('✅ تم عمل انصراف تلقائي للأمس - الموظف: ' + employeeID);
+
+      const checkInTimeStr = attendanceSheet.getRange(validation.autoCheckOutRow, 3).getValue();
+
+      if (checkInTimeStr) {
+        const checkInTime = new Date('2000-01-01 ' + checkInTimeStr);
+        const checkOutTime = new Date('2000-01-01 ' + yesterdayTime);
+
+        const durationMs = checkOutTime - checkInTime;
+        const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(2);
+
+        attendanceSheet.getRange(validation.autoCheckOutRow, 5).setValue(durationHours);
+      }
     }
-    
-    // ✅ حفظ الحضور الجديد (بدون بيانات GPS، بدون تحقق زمني)
+
+    // ✅ تسجيل الحضور (التاريخ كـ Date object)
     attendanceSheet.appendRow([
       employeeID,
-      date,
+      dateObj,   // 🔥 أهم تعديل (Date object)
       time,
       '',
       '',
       deviceID,
       'حاضر'
     ]);
-    
-    // 📍 بدون حفظ بيانات الموقع الجغرافي
-    // ⏰ بدون تحقق زمني - فقط تسجيل الحضور والانصراف
-    Logger.log('✅ تم تسجيل الحضور بنجاح (بدون بيانات GPS ولا تحقق زمني) - الموظف: ' + employeeID);
-    
+
     return jsonResponse({
       success: true,
-      message: validation.message ? '✅ ' + validation.message : 'تم تسجيل الحضور بنجاح ✅'
+      message: '✅ تم تسجيل الحضور بنجاح'
     });
-  } catch(error) {
+
+  } catch (error) {
     return jsonResponse({
       success: false,
-      message: 'خطأ في تسجيل الحضور: ' + error.toString()
+      message: '❌ خطأ في تسجيل الحضور: ' + error.toString()
     });
   }
 }
@@ -1580,20 +1586,14 @@ function handleRejectDeviceRequest(e) {
  * تنسيق التاريخ بصيغة يوم/شهر/سنة (مصري)
  */
 function formatDate(dateObj) {
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const year = dateObj.getFullYear();
-  return `${day}/${month}/${year}`;
+  return Utilities.formatDate(dateObj, "Africa/Cairo", "dd/MM/yyyy");
 }
 
 /**
  * تنسيق الوقت بصيغة ساعة:دقيقة:ثانية
  */
 function formatTime(dateObj) {
-  const hours = String(dateObj.getHours()).padStart(2, '0');
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
+  return Utilities.formatDate(dateObj, "Africa/Cairo", "HH:mm:ss");
 }
 
 /**

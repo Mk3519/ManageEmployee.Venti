@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#d32f2f">
-    <title>لوحة المدير - نظام الحضور والانصراف</title>
+    <meta name="theme-color" content="#c67e7e">
+    <title>Admin Dashboard - Attendance System</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -13,190 +13,192 @@
         <!-- الشريط العلوي (Header) -->
         <header class="dashboard-header admin-header">
             <div class="header-content">
-                <h1>لوحة إدارة النظام</h1>
                 <div class="user-info">
+                    <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
                     <span id="adminName" class="user-name">--</span>
-                    <button id="logoutBtn" class="btn btn-logout">تسجيل الخروج</button>
                 </div>
+                <button id="logoutBtn" class="btn btn-logout">Logout</button>
             </div>
         </header>
 
-        <!-- الجزء الرئيسي -->
+        <!-- Main section -->
         <main class="dashboard-main">
-            <!-- رسائل التنبيه -->
+            <!-- Alert messages -->
             <div id="alertContainer" class="alert-container"></div>
 
-            <!-- علامات التبويب (Tabs) -->
+            <!-- Tabs -->
             <div class="tabs-container">
                 <div class="tabs-header">
-                    <button class="tab-btn active" data-tab="employees">إدارة الموظفين</button>
-                    <button class="tab-btn" data-tab="disciplines">الجزاءات والسلف</button>
-                    <button class="tab-btn" data-tab="reports">التقارير</button>
-                    <button class="tab-btn" data-tab="devices">إدارة الأجهزة</button>
-                    <button class="tab-btn" data-tab="settings">الإعدادات</button>
+                    <button class="tab-btn active" data-tab="employees">Manage Employees</button>
+                    <button class="tab-btn" data-tab="disciplines">Disciplines & Advances</button>
+                    <button class="tab-btn" data-tab="reports">Reports</button>
+                    <button class="tab-btn" data-tab="devices">Device Management</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>
                 </div>
 
-                <!-- تبويب: إدارة الموظفين -->
+                <!-- Tab: Manage Employees -->
                 <div id="employees" class="tab-content active">
-                    <h2>إدارة الموظفين</h2>
-                    <button id="addEmployeeBtn" class="btn btn-primary">+ إضافة موظف جديد</button>
+                    <h2>Manage Employees</h2>
+                    <button id="addEmployeeBtn" class="btn btn-primary">+ Add New Employee</button>
                     
                     <div class="table-responsive" style="margin-top: 20px;">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>المعرف</th>
-                                    <th>الاسم</th>
-                                    <th>الوظيفة</th>
-                                    <th>الراتب</th>
-                                    <th>الهاتف</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Salary</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="employeesTableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center">جاري التحميل...</td>
+                                    <td colspan="7" class="text-center">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- تبويب: الجزاءات والسلف -->
+                <!-- Tab: Disciplines & Advances -->
                 <div id="disciplines" class="tab-content">
-                    <h2>إدارة الجزاءات والسلف</h2>
+                    <h2>Manage Disciplines & Advances</h2>
                     <div class="form-row">
-                        <button id="addDisciplineBtn" class="btn btn-danger">+ تطبيق جزاء</button>
-                        <button id="addAdvanceBtn" class="btn btn-warning">+ إضافة سلفة</button>
+                        <button id="addDisciplineBtn" class="btn btn-danger">+ Apply Discipline</button>
+                        <button id="addAdvanceBtn" class="btn btn-warning">+ Add Advance</button>
                     </div>
 
-                    <!-- جدول الجزاءات -->
-                    <h3 style="margin-top: 30px;">سجل الجزاءات</h3>
+                    <!-- Disciplines table -->
+                    <h3 style="margin-top: 30px;">Disciplines Record</h3>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>الموظف</th>
-                                    <th>النوع</th>
-                                    <th>المبلغ/السبب</th>
-                                    <th>التاريخ</th>
-                                    <th>الإجراءات</th>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Amount/Reason</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="disciplinesTableBody">
                                 <tr>
-                                    <td colspan="5" class="text-center">لا توجد بيانات</td>
+                                    <td colspan="5" class="text-center">No data</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- جدول السلف -->
-                    <h3 style="margin-top: 30px;">سجل السلف</h3>
+                    <!-- Advances table -->
+                    <h3 style="margin-top: 30px;">Advances Record</h3>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>الموظف</th>
-                                    <th>المبلغ</th>
-                                    <th>الخصم الشهري</th>
-                                    <th>الأشهر المتبقية</th>
-                                    <th>الإجراءات</th>
+                                    <th>Employee</th>
+                                    <th>Amount</th>
+                                    <th>Monthly Deduction</th>
+                                    <th>Remaining Months</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="advancesTableBody">
                                 <tr>
-                                    <td colspan="5" class="text-center">لا توجد بيانات</td>
+                                    <td colspan="5" class="text-center">No data</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- تبويب: التقارير -->
+                <!-- Tab: Reports -->
                 <div id="reports" class="tab-content">
-                    <h2>التقارير</h2>
+                    <h2>Reports</h2>
                     <div class="reports-container">
-                        <!-- تقرير الحضور -->
+                        <!-- Attendance report -->
                         <div class="report-card">
-                            <h3>تقرير الحضور والانصراف</h3>
+                            <h3>Attendance & Check-Out Report</h3>
                             <div class="report-controls">
                                 <input type="date" id="reportStartDate" class="form-control">
                                 <input type="date" id="reportEndDate" class="form-control">
-                                <button id="generateAttendanceReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadAttendanceReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateAttendanceReport" class="btn btn-info">Show Report</button>
+                                <button id="downloadAttendanceReport" class="btn btn-success">Download Excel</button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="attendanceReportTable">
                                     <thead>
                                         <tr>
-                                            <th>الاسم</th>
-                                            <th>المعرف</th>
-                                            <th>التاريخ</th>
-                                            <th>وقت الحضور</th>
-                                            <th>وقت الانصراف</th>
-                                            <th>المدة</th>
-                                            <th>الحالة</th>
+                                            <th>Name</th>
+                                            <th>ID</th>
+                                            <th>Date</th>
+                                            <th>Check In Time</th>
+                                            <th>Check Out Time</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colspan="7" class="text-center">لا توجد بيانات</td>
+                                            <td colspan="7" class="text-center">No data</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- تقرير الغياب -->
+                        <!-- Absence report -->
                         <div class="report-card">
-                            <h3>تقرير الغياب</h3>
+                            <h3>Absence Report</h3>
                             <div class="report-controls">
                                 <input type="month" id="absenceReportMonth" class="form-control">
-                                <button id="generateAbsenceReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadAbsenceReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateAbsenceReport" class="btn btn-info">Show Report</button>
+                                <button id="downloadAbsenceReport" class="btn btn-success">Download Excel</button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="absenceReportTable">
                                     <thead>
                                         <tr>
-                                            <th>الاسم</th>
-                                            <th>المعرف</th>
-                                            <th>عدد أيام الغياب</th>
-                                            <th>النسبة %</th>
+                                            <th>Name</th>
+                                            <th>ID</th>
+                                            <th>Absence Days</th>
+                                            <th>Percentage %</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colspan="4" class="text-center">لا توجد بيانات</td>
+                                            <td colspan="4" class="text-center">No data</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- تقرير التأخيرات -->
+                        <!-- Late report -->
                         <div class="report-card">
-                            <h3>تقرير التأخيرات</h3>
+                            <h3>Late Arrival Report</h3>
                             <div class="report-controls">
                                 <input type="month" id="lateReportMonth" class="form-control">
-                                <button id="generateLateReport" class="btn btn-info">عرض التقرير</button>
-                                <button id="downloadLateReport" class="btn btn-success">تحميل Excel</button>
+                                <button id="generateLateReport" class="btn btn-info">Show Report</button>
+                                <button id="downloadLateReport" class="btn btn-success">Download Excel</button>
                             </div>
                             <div class="table-responsive">
                                 <table class="report-table" id="lateReportTable">
                                     <thead>
                                         <tr>
-                                            <th>الاسم</th>
-                                            <th>المعرف</th>
-                                            <th>عدد مرات التأخير</th>
-                                            <th>إجمالي دقائق التأخير</th>
+                                            <th>Name</th>
+                                            <th>ID</th>
+                                            <th>Late Times Count</th>
+                                            <th>Total Late Minutes</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colspan="4" class="text-center">لا توجد بيانات</td>
+                                            <td colspan="4" class="text-center">No data</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -205,68 +207,68 @@
                     </div>
                 </div>
 
-                <!-- تبويب: إدارة الأجهزة -->
+                <!-- Tab: Device Management -->
                 <div id="devices" class="tab-content">
-                    <h2>طلبات تغيير الأجهزة</h2>
+                    <h2>Device Change Requests</h2>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>الموظف</th>
-                                    <th>الجهاز القديم</th>
-                                    <th>الجهاز الجديد</th>
-                                    <th>تاريخ الطلب</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>Employee</th>
+                                    <th>Old Device</th>
+                                    <th>New Device</th>
+                                    <th>Request Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="devicesTableBody">
                                 <tr>
-                                    <td colspan="6" class="text-center">لا توجد طلبات</td>
+                                    <td colspan="6" class="text-center">No requests</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- تبويب: الإعدادات -->
+                <!-- Tab: Settings -->
                 <div id="settings" class="tab-content">
-                    <h2>الإعدادات</h2>
+                    <h2>Settings</h2>
                     <div class="settings-section">
-                        <h3>موقع مكان العمل</h3>
+                        <h3>Work Location</h3>
                         <div class="form-group">
-                            <label>خط العرض (Latitude):</label>
-                            <input type="number" id="workLatitude" class="form-control" step="0.00001" placeholder="مثلاً: 24.7136">
+                            <label>Latitude:</label>
+                            <input type="number" id="workLatitude" class="form-control" step="0.00001" placeholder="e.g.: 24.7136">
                         </div>
                         <div class="form-group">
-                            <label>خط الطول (Longitude):</label>
-                            <input type="number" id="workLongitude" class="form-control" step="0.00001" placeholder="مثلاً: 46.6753">
+                            <label>Longitude:</label>
+                            <input type="number" id="workLongitude" class="form-control" step="0.00001" placeholder="e.g.: 46.6753">
                         </div>
                         <div class="form-group">
-                            <label>نطاق المسافة المسموح (متر):</label>
-                            <input type="number" id="workRadius" class="form-control" value="100" placeholder="المسافة بالمتر">
+                            <label>Allowed Distance Range (meters):</label>
+                            <input type="number" id="workRadius" class="form-control" value="100" placeholder="Distance in meters">
                         </div>
-                        <button id="saveLocationBtn" class="btn btn-success">حفظ الموقع</button>
+                        <button id="saveLocationBtn" class="btn btn-success">Save Location</button>
                     </div>
 
                     <div class="settings-section">
-                        <h3>أوقات العمل</h3>
+                        <h3>Work Hours</h3>
                         <div class="form-group">
-                            <label>موعد بدء العمل:</label>
+                            <label>Work Start Time:</label>
                             <input type="time" id="workStartTime" class="form-control" value="08:00">
                         </div>
                         <div class="form-group">
-                            <label>موعد نهاية العمل:</label>
+                            <label>Work End Time:</label>
                             <input type="time" id="workEndTime" class="form-control" value="17:00">
                         </div>
-                        <button id="saveTimingsBtn" class="btn btn-success">حفظ الأوقات</button>
+                        <button id="saveTimingsBtn" class="btn btn-success">Save Hours</button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal for forms will be added here dynamically -->
+    <!-- Modal for forms (will be added here dynamically) -->
     <div id="modalContainer"></div>
 
     <!-- Scripts -->

@@ -17,9 +17,9 @@ body {
    ============================================ */
 
 .dashboard-header {
-    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    background: linear-gradient(135deg, #5a8fbf 0%, #4a7aaa 100%);
     color: white;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     position: sticky;
     top: 0;
@@ -27,34 +27,45 @@ body {
 }
 
 .dashboard-header.admin-header {
-    background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+    background: linear-gradient(135deg, #c67e7e 0%, #b06a6a 100%);
 }
 
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
     gap: var(--spacing-md);
+    width: 100%;
 }
 
 .header-content h1 {
     margin: 0;
     font-size: var(--font-size-lg);
     color: white;
+    flex: 1 1 auto;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
+}
+
+.user-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    color: white;
+    flex-shrink: 0;
 }
 
 .user-name {
     font-weight: 600;
     font-size: var(--font-size-sm);
-    white-space: nowrap;
+    color: white;
+    word-break: break-word;
 }
 
 /* ============================================
@@ -63,8 +74,8 @@ body {
 
 .dashboard-main {
     flex: 1;
-    padding: var(--spacing-lg);
-    max-width: 1400px;
+    padding: var(--spacing-md);
+    max-width: 100%;
     width: 100%;
     margin: 0 auto;
 }
@@ -166,7 +177,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--border-color);
 }
@@ -178,19 +189,19 @@ body {
 
 .status-badge {
     padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: 20px;
+    border-radius: 15px;
     font-weight: 600;
     font-size: var(--font-size-sm);
 }
 
 .status-present {
     background-color: #e8f5e9;
-    color: #2e7d32;
+    color: #6ba678;
 }
 
 .status-absent {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: #ffe8e6;
+    color: #c67e7e;
 }
 
 .time-display {
@@ -198,7 +209,7 @@ body {
 }
 
 .current-time {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
     font-weight: bold;
     color: var(--primary-color);
     margin-bottom: var(--spacing-xs);
@@ -217,22 +228,24 @@ body {
 
 .btn-lg {
     flex-direction: column;
-    height: 120px;
-    border-radius: 12px;
-    font-size: var(--font-size-lg);
+    height: 100px;
+    border-radius: 10px;
+    font-size: var(--font-size-base);
     font-weight: 600;
+    padding: var(--spacing-sm);
 }
 
 .button-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     display: block;
+    margin-bottom: var(--spacing-xs);
 }
 
 .last-attendance-info {
-    background-color: var(--light-color);
-    padding: var(--spacing-md);
+    background-color: #f0f4f8;
+    padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--border-radius);
-    border-right: 3px solid var(--primary-color);
+    border-left: 3px solid var(--primary-color);
 }
 
 .last-attendance-info p {
@@ -251,6 +264,7 @@ body {
 
 .employee-card {
     background: white;
+    padding: var(--spacing-md) var(--spacing-md);
 }
 
 .info-grid {
@@ -260,8 +274,8 @@ body {
 }
 
 .info-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
     padding: var(--spacing-sm) 0;
     border-bottom: 1px solid var(--border-color);
@@ -273,12 +287,14 @@ body {
 
 .info-item .label {
     font-weight: 600;
-    color: var(--dark-color);
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
 }
 
 .info-item .value {
     color: var(--primary-color);
-    font-weight: 500;
+    font-weight: 600;
+    text-align: right;
 }
 
 @media (min-width: 768px) {
@@ -387,7 +403,7 @@ body {
     background-color: var(--primary-color);
     color: white;
     padding: var(--spacing-sm);
-    text-align: right;
+    text-align: left;
     font-weight: 600;
 }
 

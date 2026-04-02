@@ -250,8 +250,8 @@ async function loadAttendanceHistory() {
 }
 
 /**
- * ✅ تحديث حالة الحضور من آخر سجل في Google Sheets
- * إذا كان آخر سجل check-in بدون check-out = الموظف حاضر حالياً
+ * ✅ تحديث حالة الحضور من سجل اليوم الحالي في Google Sheets
+ * إذا كان سجل اليوم check-in بدون check-out = الموظف حاضر حالياً
  */
 function updateCheckInStateFromLastRecord(records) {
     if (!records || records.length === 0) {
@@ -261,48 +261,57 @@ function updateCheckInStateFromLastRecord(records) {
         return;
     }
     
-    // آخر سجل (الأحدث أولاً بعد الترتيب)
-    const lastRecord = records[0];
+    // الحصول على تاريخ اليوم الحالي بصيغة DD/MM/YYYY
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const todayString = `${day}/${month}/${year}`;
     
-    if (!lastRecord) {
+    // البحث عن أول سجل من اليوم الحالي (لا نستخدم آخر سجل بشكل عام)
+    const todayRecord = records.find(record => 
+        record.date && String(record.date).trim() === todayString
+    );
+    
+    if (!todayRecord) {
         isCheckedIn = false;
-        console.log('⚠️ السجل الأخير فارغ');
+        console.log(`⚠️ لا توجد سجلات حضور لاليوم (${todayString})`);
         updateAttendanceStatus();
         return;
     }
     
     // ✅ معالجة آمنة للبيانات - تحويل Date objects إلى strings
     let checkInValue = '';
-    if (lastRecord.checkIn) {
-        if (typeof lastRecord.checkIn === 'object' && lastRecord.checkIn instanceof Date) {
+    if (todayRecord.checkIn) {
+        if (typeof todayRecord.checkIn === 'object' && todayRecord.checkIn instanceof Date) {
             // تحويل Date object إلى نص الوقت
-            checkInValue = lastRecord.checkIn.toLocaleTimeString('ar-EG', {
+            checkInValue = todayRecord.checkIn.toLocaleTimeString('ar-EG', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
             });
         } else {
-            checkInValue = String(lastRecord.checkIn).trim();
+            checkInValue = String(todayRecord.checkIn).trim();
         }
     }
     
     let checkOutValue = '';
-    if (lastRecord.checkOut) {
-        if (typeof lastRecord.checkOut === 'object' && lastRecord.checkOut instanceof Date) {
-            checkOutValue = lastRecord.checkOut.toLocaleTimeString('ar-EG', {
+    if (todayRecord.checkOut) {
+        if (typeof todayRecord.checkOut === 'object' && todayRecord.checkOut instanceof Date) {
+            checkOutValue = todayRecord.checkOut.toLocaleTimeString('ar-EG', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
             });
         } else {
-            checkOutValue = String(lastRecord.checkOut).trim();
+            checkOutValue = String(todayRecord.checkOut).trim();
         }
     }
     
     const hasCheckIn = checkInValue !== '' && checkInValue !== '--';
     const hasCheckOut = checkOutValue !== '' && checkOutValue !== '--';
     
-    console.log(`📍 آخر سجل: ${lastRecord.date}`);
+    console.log(`📍 سجل اليوم: ${todayRecord.date}`);
     console.log(`  ✓ Check-in: ${checkInValue || 'خالي'}`);
     console.log(`  ✓ Check-out: ${checkOutValue || 'خالي'}`);
     

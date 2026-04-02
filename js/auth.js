@@ -18,29 +18,29 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * تهيئة صفحة تسجيل الدخول
+ * Initialize login page
  */
 function initializeLoginPage() {
     const loginForm = document.getElementById('loginForm');
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
-    // عرض معلومات الجهاز
+    // Display device info
     if (deviceFingerprint) {
         deviceFingerprint.displayDeviceInfo();
     }
 
-    // نموذج تسجيل الدخول
+    // Login form
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 
-    // إظهار/إخفاء كلمة المرور
+    // Show/hide password
     if (togglePasswordBtn && passwordInput) {
         togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
     }
 
-    // استجابة سريعة على لوحة المفاتيح
+    // Keyboard shortcuts
     const employeeIDInput = document.getElementById('employeeID');
     if (employeeIDInput) {
         employeeIDInput.addEventListener('keypress', function(e) {
@@ -60,7 +60,7 @@ function initializeLoginPage() {
 }
 
 /**
- * التعامل مع إرسال نموذج تسجيل الدخول
+ * Handle login form submission
  */
 async function handleLoginSubmit(e) {
     e.preventDefault();
@@ -68,30 +68,30 @@ async function handleLoginSubmit(e) {
     const employeeID = document.getElementById('employeeID').value.trim();
     const password = document.getElementById('password').value;
 
-    // التحقق من المدخلات
+    // Check inputs
     if (!employeeID || !password) {
-        showErrorMessage('يرجى إدخال رقم الموظف وكلمة المرور');
+        showErrorMessage('Please enter Employee ID and Password');
         return;
     }
 
     if (employeeID.length < 1) {
-        showErrorMessage('رقم الموظف مطلوب');
+        showErrorMessage('Employee ID is required');
         return;
     }
 
     if (password.length < 4) {
-        showErrorMessage('كلمة المرور قصيرة جداً');
+        showErrorMessage('Password is too short');
         return;
     }
 
-    // بدء عملية التسجيل
+    // Start login process
     showLoadingSpinner(true);
 
     try {
         const result = await performLogin(employeeID, password);
         
         if (result.success) {
-            showSuccessMessage('تم تسجيل الدخول بنجاح');
+            showSuccessMessage('Login successful');
             
             // Redirect based on role
             setTimeout(() => {
@@ -101,34 +101,34 @@ async function handleLoginSubmit(e) {
                 } else if (userRole === 'admin') {
                     redirectTo('admin-dashboard.html');
                 } else {
-                    showErrorMessage('دور المستخدم غير معروف');
+                    showErrorMessage('Unknown user role');
                 }
             }, 1500);
         } else {
-            showErrorMessage(result.message || 'فشل تسجيل الدخول');
+            showErrorMessage(result.message || 'Login failed');
         }
     } catch (error) {
         console.error('Login error:', error);
-        showErrorMessage('حدث خطأ: ' + error.message);
+        showErrorMessage('Error: ' + error.message);
     } finally {
         showLoadingSpinner(false);
     }
 }
 
 /**
- * تنفيذ عملية تسجيل الدخول محسّن مع GPS
+ * Perform enhanced login process with GPS
  */
 async function performLogin(employeeID, password) {
     try {
-        // التحقق من الاتصال بالإنترنت
+        // Check internet connection
         if (!isOnline()) {
-            throw new Error('لا يوجد اتصال بالإنترنت');
+            throw new Error('No internet connection');
         }
 
-        // الخطوة 1: تحديد المستخدم (موظف أو مدير)
+        // Step 1: Identify user type (employee or admin)
         const userType = await identifyUserType(employeeID);
 
-        // الخطوة 2: محاولة المصادقة
+        // Step 2: Attempt authentication
         let loginResult;
         
         if (userType === 'employee') {
@@ -138,14 +138,14 @@ async function performLogin(employeeID, password) {
         } else {
             return {
                 success: false,
-                message: 'المستخدم غير موجود'
+                message: 'User not found'
             };
         }
 
         if (!loginResult.success) {
             return {
                 success: false,
-                message: 'بيانات تسجيل الدخول غير صحيحة'
+                message: 'Invalid login credentials'
             };
         }
 

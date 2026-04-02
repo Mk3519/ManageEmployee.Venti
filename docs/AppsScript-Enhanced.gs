@@ -365,17 +365,14 @@ function validateCheckInConditions(employeeID, timestamp) {
       }
     }
     
-    // الحالة 2: يوجد check-in من أمس بدون check-out
-    if (!lastCheckInHasCheckOut) {
-      // نعمل انصراف تلقائي للأمس ثم نسمح بحضور جديد
-      Logger.log('🔄 تم اكتشاف حضور بدون انصراف من أمس - سيتم عمل انصراف تلقائي');
-      return {
-        canCheckIn: true,
-        autoCheckOut: true,
-        autoCheckOutRow: lastCheckInRow + 1, // Row Index (1-based)
-        message: 'تم عمل انصراف تلقائي للأمس - الآن يمكن تسجيل حضور جديد 🔄'
-      };
-    }
+  if (!lastCheckInHasCheckOut) {
+    return {
+      canCheckIn: true,        // ✅ يسمح بالحضور
+      autoCheckOut: false,     // ❌ يمنع الانصراف التلقائي
+      reason: 'missing_checkout_previous_day',
+      message: '⚠️ يوجد يوم سابق بدون انصراف، تم تسجيل حضور اليوم بشكل طبيعي'
+    };
+  }
     
     // الحالة 3: كل شيء طبيعي
     return {
@@ -420,26 +417,7 @@ function handleCheckIn(e) {
       });
     }
 
-    // ✅ في حالة وجود حضور أمس بدون انصراف → يعمل auto checkout
-    if (validation.autoCheckOut && validation.autoCheckOutRow) {
-      const yesterday = new Date(dateObj.getTime() - 24 * 60 * 60 * 1000);
 
-      const yesterdayTime = Utilities.formatDate(yesterday, "Africa/Cairo", "HH:mm:ss");
-
-      attendanceSheet.getRange(validation.autoCheckOutRow, 4).setValue(yesterdayTime);
-
-      const checkInTimeStr = attendanceSheet.getRange(validation.autoCheckOutRow, 3).getValue();
-
-      if (checkInTimeStr) {
-        const checkInTime = new Date('2000-01-01 ' + checkInTimeStr);
-        const checkOutTime = new Date('2000-01-01 ' + yesterdayTime);
-
-        const durationMs = checkOutTime - checkInTime;
-        const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(2);
-
-        attendanceSheet.getRange(validation.autoCheckOutRow, 5).setValue(durationHours);
-      }
-    }
 
     // ✅ تسجيل الحضور (التاريخ كـ Date object)
     attendanceSheet.appendRow([

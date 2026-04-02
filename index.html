@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#1e88e5">
-    <title>نظام الحضور والانصراف - تسجيل الدخول</title>
+    <meta name="theme-color" content="#5a8fbf">
+    <title>Attendance System - Login</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
@@ -12,39 +12,39 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>نظام إدارة الحضور والانصراف</h1>
-                <p>تسجيل الدخول</p>
+                <h1>Attendance Management System</h1>
+                <p>Login</p>
             </div>
 
-            <!-- رسالة الخطأ -->
+            <!-- Error message -->
             <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
             
-            <!-- رسالة النجاح -->
+            <!-- Success message -->
             <div id="successMessage" class="alert alert-success" style="display: none;"></div>
 
-            <!-- نموذج تسجيل الدخول -->
+            <!-- Login form -->
             <form id="loginForm" class="login-form">
                 <div class="form-group">
-                    <label for="employeeID">رقم الموظف</label>
+                    <label for="employeeID">Employee ID</label>
                     <input 
                         type="text" 
                         id="employeeID" 
                         name="employeeID" 
                         class="form-control" 
-                        placeholder="أدخل رقم الموظف"
+                        placeholder="Enter employee ID"
                         required
                     >
                 </div>
 
                 <div class="form-group">
-                    <label for="password">كلمة المرور</label>
+                    <label for="password">Password</label>
                     <div class="password-input-group">
                         <input 
                             type="password" 
                             id="password" 
                             name="password" 
                             class="form-control" 
-                            placeholder="أدخل كلمة المرور"
+                            placeholder="Enter password"
                             required
                         >
                         <button type="button" class="toggle-password" id="togglePassword">
@@ -53,16 +53,16 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block">دخول</button>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
             </form>
 
-            <!-- رسالة التحميل -->
+            <!-- Loading message -->
             <div id="loadingSpinner" class="loading-spinner" style="display: none;">
                 <div class="spinner"></div>
-                <p>جاري معالجة طلبك...</p>
+                <p>Processing your request...</p>
             </div>
 
-            <!-- معلومات الجهاز -->
+            <!-- Device info -->
             <div class="device-info">
                 <small id="deviceInfo"></small>
             </div>

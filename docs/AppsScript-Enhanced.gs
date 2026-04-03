@@ -424,10 +424,10 @@ function handleCheckIn(e) {
       employeeID,
       dateObj,   // 🔥 أهم تعديل (Date object)
       time,
-      '',
-      '',
+      '',        // ✅ Check-out (يُترك فارغاً عند الحضور)
+      '',        // ✅ ساعات العمل (يُترك فارغاً - سيُحسب عند الانصراف)
       deviceID,
-      'حاضر'
+      'present'
     ]);
 
     return jsonResponse({
@@ -489,7 +489,7 @@ function handleCheckOut(e) {
           Logger.log(`⏱️ حساب المدة: check-in="${checkInTimeStr}", check-out="${time}", مدة=${durationHours} ساعة`);
           
           attendanceSheet.getRange(i + 1, 4).setValue(time);
-          attendanceSheet.getRange(i + 1, 5).setValue(durationHours);
+          attendanceSheet.getRange(i + 1, 5).setValue('');  // ✅ اترك الحقل فارغاً (بدون NaN)
           
           Logger.log(`✅ تم تسجيل الانصراف بنجاح - الموظف: ${employeeID} في ${currentDate} الساعة ${time}`);
           

@@ -2,13 +2,29 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#c67e7e">
     <title>Admin Dashboard - Attendance System</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        /* Mobile-Only Styles */
+        @media (min-width: 768px) {
+            body {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Loading Spinner (مثل صفحة الموظفين) -->
+    <div id="loadingSpinner" class="loading-spinner-overlay">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <p class="loading-text">جاري تحميل البيانات...</p>
+        </div>
+    </div>
+
     <div class="dashboard-container admin-dashboard">
         <!-- الشريط العلوي (Header) -->
         <header class="dashboard-header admin-header">
@@ -31,12 +47,12 @@
             <!-- Tabs -->
             <div class="tabs-container">
                 <div class="tabs-header">
-                    <button class="tab-btn active" data-tab="employees">Manage Employees</button>
+                    <!--<button class="tab-btn active" data-tab="employees">Manage Employees</button>-->
                     <button class="tab-btn" data-tab="daily-attendance">Daily Attendance</button>
-                    <button class="tab-btn" data-tab="disciplines">Disciplines & Advances</button>
+                    <!--<button class="tab-btn" data-tab="disciplines">Disciplines & Advances</button>
                     <button class="tab-btn" data-tab="reports">Reports</button>
                     <button class="tab-btn" data-tab="devices">Device Management</button>
-                    <button class="tab-btn" data-tab="settings">Settings</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>-->
                 </div>
 
                 <!-- Tab: Daily Attendance -->
@@ -46,27 +62,27 @@
                         <div class="date-display">
                             <span id="todayDate" class="date-text">Today: --</span>
                         </div>
-                        <button id="refreshAttendanceBtn" class="btn btn-info">🔄 Refresh</button>
+                        <button id="refreshAttendanceBtn" class="btn btn-info">Refresh</button>
                     </div>
 
                     <!-- Attendance Stats -->
                     <div class="attendance-stats">
                         <div class="stat-card present">
-                            <div class="stat-icon">✓</div>
+                            <div class="stat-icon">+</div>
                             <div class="stat-content">
                                 <div class="stat-label">Present</div>
                                 <div class="stat-value" id="presentCount">0</div>
                             </div>
                         </div>
                         <div class="stat-card absent">
-                            <div class="stat-icon">✗</div>
+                            <div class="stat-icon">-</div>
                             <div class="stat-content">
                                 <div class="stat-label">Not Checked In</div>
                                 <div class="stat-value" id="absentCount">0</div>
                             </div>
                         </div>
                         <div class="stat-card total">
-                            <div class="stat-icon">👥</div>
+                            <div class="stat-icon">N</div>
                             <div class="stat-content">
                                 <div class="stat-label">Total Employees</div>
                                 <div class="stat-value" id="totalCount">0</div>
@@ -77,8 +93,8 @@
                     <!-- Filter Tabs -->
                     <div class="attendance-filter-tabs">
                         <button class="filter-tab active" data-filter="all">All</button>
-                        <button class="filter-tab" data-filter="present">Present ✓</button>
-                        <button class="filter-tab" data-filter="absent">Not Checked In ✗</button>
+                        <button class="filter-tab" data-filter="present">Present</button>
+                        <button class="filter-tab" data-filter="absent">Not Checked In</button>
                     </div>
 
                     <!-- Attendance Table -->
@@ -88,16 +104,13 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Position</th>
-                                    <th>Check-In Time</th>
+                                    <th>Check-In</th>
                                     <th>Status</th>
-                                    <th>Device</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="dailyAttendanceTableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center">Loading attendance data...</td>
+                                    <td colspan="4" class="text-center">Loading attendance data...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -105,7 +118,7 @@
                 </div>
 
                 <!-- Tab: Manage Employees -->
-                <div id="employees" class="tab-content">
+                <!--<div id="employees" class="tab-content">
                     <h2>Manage Employees</h2>
                     <button id="addEmployeeBtn" class="btn btn-primary">+ Add New Employee</button>
                     
@@ -132,15 +145,15 @@
                 </div>
 
                 <!-- Tab: Disciplines & Advances -->
-                <div id="disciplines" class="tab-content">
+                <!--<div id="disciplines" class="tab-content">
                     <h2>Manage Disciplines & Advances</h2>
                     <div class="form-row">
                         <button id="addDisciplineBtn" class="btn btn-danger">+ Apply Discipline</button>
                         <button id="addAdvanceBtn" class="btn btn-warning">+ Add Advance</button>
-                    </div>
+                    </div>-->
 
                     <!-- Disciplines table -->
-                    <h3 style="margin-top: 30px;">Disciplines Record</h3>
+                    <!--<h3 style="margin-top: 30px;">Disciplines Record</h3>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -158,10 +171,10 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </div>-->
 
                     <!-- Advances table -->
-                    <h3 style="margin-top: 30px;">Advances Record</h3>
+                    <!--<h3 style="margin-top: 30px;">Advances Record</h3>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -180,14 +193,14 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div>-->
 
                 <!-- Tab: Reports -->
-                <!<div id="reports" class="tab-content">
+                <!--<div id="reports" class="tab-content">
                     <h2>Reports</h2>
                     <div class="reports-container">
                         <!-- Attendance report -->
-                        <div class="report-card">
+                        <!--<div class="report-card">
                             <h3>Attendance & Check-Out Report</h3>
                             <div class="report-controls">
                                 <input type="date" id="reportStartDate" class="form-control">
@@ -215,10 +228,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </div>-->
 
                         <!-- Absence report -->
-                        <div class="report-card">
+                        <!--<div class="report-card">
                             <h3>Absence Report</h3>
                             <div class="report-controls">
                                 <input type="month" id="absenceReportMonth" class="form-control">
@@ -242,10 +255,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </div>-->
 
                         <!-- Late report -->
-                        <div class="report-card">
+                        <!--<div class="report-card">
                             <h3>Late Arrival Report</h3>
                             <div class="report-controls">
                                 <input type="month" id="lateReportMonth" class="form-control">
@@ -271,10 +284,10 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>-->
 
                 <!-- Tab: Device Management -->
-                <div id="devices" class="tab-content">
+                <!--<div id="devices" class="tab-content">
                     <h2>Device Change Requests</h2>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -295,10 +308,10 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div>-->
 
                 <!-- Tab: Settings -->
-                <div id="settings" class="tab-content">
+                <!--<div id="settings" class="tab-content">
                     <h2>Settings</h2>
                     <div class="settings-section">
                         <h3>Work Location</h3>
@@ -332,7 +345,7 @@
                 </div>
             </div>
         </main>
-    </div>
+    </div>-->
 
     <!-- Modal for forms (will be added here dynamically) -->
     <div id="modalContainer"></div>

@@ -6,6 +6,26 @@ let employeeData = null;
 let employeeStats = null;
 let isCheckedIn = false;
 
+/**
+ * إظهار دائرة التحميل
+ */
+function showLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.remove('hidden');
+    }
+}
+
+/**
+ * إخفاء دائرة التحميل
+ */
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.add('hidden');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // التحقق من المصادقة
     if (!isUserAuthenticated() || !isEmployee()) {
@@ -21,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
  * تهيئة لوحة الموظف
  */
 async function initializeDashboard() {
+    // 🔄 إظهار دائرة التحميل
+    showLoadingSpinner();
+    
     try {
         const userID = getUserID();
 
@@ -64,6 +87,9 @@ async function initializeDashboard() {
         // ✅ تحديث حالة الأزرار بناءً على حالة Check-In
         updateAttendanceStatus();
 
+        // ✅ تحديث آخر حضور/انصراف
+        updateLastAttendance();
+
         // بدء التحديث الدوري
         startAutoUpdate();
 
@@ -74,9 +100,14 @@ async function initializeDashboard() {
         updateClock();
         setInterval(updateClock, 1000);
 
+        // ✅ إخفاء دائرة التحميل عند اكتمال التحميل
+        hideLoadingSpinner();
+
     } catch (error) {
         console.error('Dashboard initialization error:', error);
         showErrorMessage('فشل تحميل بيانات اللوحة');
+        // ✅ إخفاء دائرة التحميل عند حدوث خطأ
+        hideLoadingSpinner();
     }
 }
 
@@ -377,7 +408,7 @@ function displayAttendanceHistory(records) {
             <td>${checkInDisplay}</td>
             <td>${checkOutDisplay}</td>
             <td>
-                <span class="status-badge ${record.status === 'حاضر' ? 'status-present' : 'status-absent'}">
+                <span class="status-badge ${record.status === 'present' ? 'status-present' : 'status-absent'}">
                     ${record.status}
                 </span>
             </td>
@@ -561,11 +592,10 @@ async function handleCheckIn() {
             isCheckedIn = true;
             updateAttendanceStatus();
 
-            // تحديث البيانات بعد ثانية
+            // إعادة تحميل الصفحة بعد ثانية
             setTimeout(() => {
-                loadEmployeeStats();
-                loadAttendanceHistory();
-            }, 1000);
+                window.location.reload();
+            }, 1500);
         } else {
             showErrorMessage('❌ ' + (result.message || 'فشل تسجيل الحضور'));
         }
@@ -629,11 +659,10 @@ async function handleCheckOut() {
             isCheckedIn = false;
             updateAttendanceStatus();
 
-            // تحديث البيانات بعد ثانية
+            // إعادة تحميل الصفحة بعد ثانية
             setTimeout(() => {
-                loadEmployeeStats();
-                loadAttendanceHistory();
-            }, 1000);
+                window.location.reload();
+            }, 1500);
         } else {
             showErrorMessage('❌ ' + (result.message || 'فشل تسجيل الانصراف'));
         }
@@ -655,11 +684,11 @@ function updateAttendanceStatus() {
     if (!statusDisplay) return;
 
     if (isCheckedIn) {
-        statusDisplay.innerHTML = '<span class="status-badge status-present">حاضر الآن</span>';
+        statusDisplay.innerHTML = '<span class="status-badge status-present">Present now</span>';
         const checkOutBtn = document.getElementById('checkOutBtn');
         if (checkOutBtn) checkOutBtn.disabled = false;
     } else {
-        statusDisplay.innerHTML = '<span class="status-badge status-absent">غير حاضر</span>';
+        statusDisplay.innerHTML = '<span class="status-badge status-absent">Not present</span>';
         const checkOutBtn = document.getElementById('checkOutBtn');
         if (checkOutBtn) checkOutBtn.disabled = true;
     }
@@ -671,14 +700,33 @@ function updateAttendanceStatus() {
 function updateClock() {
     const now = new Date();
     
+    // تنسيق الوقت بصيغة 12 ساعة
+    const hours12 = now.getHours() % 12 || 12;
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    const time12 = `${hours12}:${minutes}:${seconds} ${ampm}`;
+    
+    // تنسيق التاريخ بالإنجليزية مع اسم اليوم
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const dayName = days[now.getDay()];
+    const date = now.getDate();
+    const monthName = months[now.getMonth()];
+    const year = now.getFullYear();
+    
+    const dateEnglish = `${dayName}, ${monthName} ${date}, ${year}`;
+    
     const timeElement = document.getElementById('currentTime');
     if (timeElement) {
-        timeElement.textContent = formatTime(now);
+        timeElement.textContent = time12;
     }
 
     const dateElement = document.getElementById('currentDate');
     if (dateElement) {
-        dateElement.textContent = formatDateArabic(now);
+        dateElement.textContent = dateEnglish;
     }
 }
 
@@ -686,17 +734,40 @@ function updateClock() {
  * تحديث آخر حضور/انصراف
  */
 function updateLastAttendance() {
-    // سيتم تحديثه من البيانات المسترجعة من الـ API
+    // الحصول على آخر سجل من جدول الحضور
+    const tbody = document.getElementById('attendanceTableBody');
+    if (!tbody || tbody.children.length === 0) {
+        return;
+    }
+
+    // الحصول على أول صف في الجدول (آخر سجل لأنه مرتب من الأحدث)
+    const firstRow = tbody.children[0];
+    if (!firstRow || firstRow.textContent.includes('لا توجد بيانات')) {
+        return;
+    }
+
+    // استخراج البيانات من الصف
+    const cells = firstRow.querySelectorAll('td');
+    if (cells.length < 3) {
+        return;
+    }
+
+    const checkInTime = cells[1].textContent.trim() || '--';
+    const checkOutTime = cells[2].textContent.trim() || '--';
+
+    // تحديث العناصر
     const lastCheckInEl = document.getElementById('lastCheckIn');
     const lastCheckOutEl = document.getElementById('lastCheckOut');
 
-    if (lastCheckInEl && employeeStats) {
-        lastCheckInEl.textContent = employeeStats.lastCheckIn || '--';
+    if (lastCheckInEl) {
+        lastCheckInEl.textContent = checkInTime;
     }
 
-    if (lastCheckOutEl && employeeStats) {
-        lastCheckOutEl.textContent = employeeStats.lastCheckOut || '--';
+    if (lastCheckOutEl) {
+        lastCheckOutEl.textContent = checkOutTime;
     }
+
+    console.log('✅ تم تحديث آخر حضور/انصراف:', { checkInTime, checkOutTime });
 }
 
 /**
@@ -711,6 +782,7 @@ function startAutoUpdate() {
     // تحديث السجل الشهري كل دقيقة
     setInterval(() => {
         loadAttendanceHistory();
+        updateLastAttendance();
     }, 60000);
 }
 

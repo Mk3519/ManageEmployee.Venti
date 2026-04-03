@@ -240,7 +240,7 @@ async function performLogin(employeeID, password) {
 async function identifyUserType(userID) {
     try {
         // قائمة معرفة مسبقاً للمديرين (يمكن التعديل)
-        const knownAdmins = ['1', 'ADM', 'ADM-1', 'admin', 'owner', 'Owner'];
+        const knownAdmins = ['1', 'ADM', 'ADM-1', 'admin', 'owner', 'Owner' , "MK"];
         
         if (knownAdmins.includes(String(userID).trim())) {
             console.log('✅ المستخدم محدد كـ: Admin (من القائمة المعروفة)');

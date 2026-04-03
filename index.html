@@ -10,17 +10,22 @@
 </head>
 <body>
     <div class="login-container">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner-overlay hidden">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p class="loading-text">جاري تسجيل الدخول...</p>
+            </div>
+        </div>
+
         <div class="login-card">
             <div class="login-header">
-                <h1>Attendance Management System</h1>
+                <h1>Attendance</h1>
                 <p>Login</p>
             </div>
 
-            <!-- Error message -->
-            <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
-            
-            <!-- Success message -->
-            <div id="successMessage" class="alert alert-success" style="display: none;"></div>
+            <!-- Alert messages container -->
+            <div id="alertContainer"></div>
 
             <!-- Login form -->
             <form id="loginForm" class="login-form">
@@ -56,15 +61,9 @@
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
             </form>
 
-            <!-- Loading message -->
-            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                <div class="spinner"></div>
-                <p>Processing your request...</p>
-            </div>
-
-            <!-- Device info -->
-            <div class="device-info">
-                <small id="deviceInfo"></small>
+            <!-- Copyright -->
+            <div class="copyright">
+                <small>&copy; 2026 Maged Khater . Developer</small>
             </div>
         </div>
     </div>

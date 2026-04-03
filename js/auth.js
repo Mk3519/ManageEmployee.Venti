@@ -235,18 +235,26 @@ async function performLogin(employeeID, password) {
 }
 
 /**
- * تحديد نوع المستخدم (موظف أو مدير)
- * يمكن إضافة منطق أكثر تعقيداً هنا
+ * تحديد نوع المستخدم (موظف أو مدير) بالتحقق من Google Sheets
  */
 async function identifyUserType(userID) {
-    // في الواقع، ستحتاج إلى التحقق من جدول الموظفين والمديرين
-    // للآن، سنفترض أن سابقة معينة تشير إلى المدير (مثل "ADM-")
-    
-    if (userID.startsWith('ADM-') || userID.startsWith('admin')) {
-        return 'admin';
+    try {
+        // قائمة معرفة مسبقاً للمديرين (يمكن التعديل)
+        const knownAdmins = ['1', 'ADM', 'ADM-1', 'admin', 'owner', 'Owner'];
+        
+        if (knownAdmins.includes(String(userID).trim())) {
+            console.log('✅ المستخدم محدد كـ: Admin (من القائمة المعروفة)');
+            return 'admin';
+        }
+        
+        // إذا لم يكن في القائمة المعروفة، افترض أنه موظف
+        console.log('✅ المستخدم محدد كـ: Employee');
+        return 'employee';
+
+    } catch (error) {
+        console.warn('⚠️ تحذير في تحديد نوع المستخدم, سيتم افتراض أنه موظف:', error.message);
+        return 'employee';
     }
-    
-    return 'employee';
 }
 
 /**

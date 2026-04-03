@@ -32,14 +32,80 @@
             <div class="tabs-container">
                 <div class="tabs-header">
                     <button class="tab-btn active" data-tab="employees">Manage Employees</button>
+                    <button class="tab-btn" data-tab="daily-attendance">Daily Attendance</button>
                     <button class="tab-btn" data-tab="disciplines">Disciplines & Advances</button>
                     <button class="tab-btn" data-tab="reports">Reports</button>
                     <button class="tab-btn" data-tab="devices">Device Management</button>
                     <button class="tab-btn" data-tab="settings">Settings</button>
                 </div>
 
+                <!-- Tab: Daily Attendance -->
+                <div id="daily-attendance" class="tab-content">
+                    <h2>Daily Attendance Report</h2>
+                    <div class="daily-attendance-header">
+                        <div class="date-display">
+                            <span id="todayDate" class="date-text">Today: --</span>
+                        </div>
+                        <button id="refreshAttendanceBtn" class="btn btn-info">🔄 Refresh</button>
+                    </div>
+
+                    <!-- Attendance Stats -->
+                    <div class="attendance-stats">
+                        <div class="stat-card present">
+                            <div class="stat-icon">✓</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Present</div>
+                                <div class="stat-value" id="presentCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card absent">
+                            <div class="stat-icon">✗</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Not Checked In</div>
+                                <div class="stat-value" id="absentCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card total">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Total Employees</div>
+                                <div class="stat-value" id="totalCount">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="attendance-filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="present">Present ✓</button>
+                        <button class="filter-tab" data-filter="absent">Not Checked In ✗</button>
+                    </div>
+
+                    <!-- Attendance Table -->
+                    <div class="table-responsive" style="margin-top: 20px;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Check-In Time</th>
+                                    <th>Status</th>
+                                    <th>Device</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyAttendanceTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading attendance data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Tab: Manage Employees -->
-                <div id="employees" class="tab-content active">
+                <div id="employees" class="tab-content">
                     <h2>Manage Employees</h2>
                     <button id="addEmployeeBtn" class="btn btn-primary">+ Add New Employee</button>
                     
@@ -117,7 +183,7 @@
                 </div>
 
                 <!-- Tab: Reports -->
-                <div id="reports" class="tab-content">
+                <!<div id="reports" class="tab-content">
                     <h2>Reports</h2>
                     <div class="reports-container">
                         <!-- Attendance report -->

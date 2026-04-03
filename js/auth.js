@@ -25,11 +25,6 @@ function initializeLoginPage() {
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
-    // Display device info
-    if (deviceFingerprint) {
-        deviceFingerprint.displayDeviceInfo();
-    }
-
     // Login form
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
@@ -85,7 +80,7 @@ async function handleLoginSubmit(e) {
     }
 
     // Start login process
-    showLoadingSpinner(true);
+    showLoadingSpinner();
 
     try {
         const result = await performLogin(employeeID, password);
@@ -111,7 +106,7 @@ async function handleLoginSubmit(e) {
         console.error('Login error:', error);
         showErrorMessage('Error: ' + error.message);
     } finally {
-        showLoadingSpinner(false);
+        hideLoadingSpinner();
     }
 }
 
@@ -327,22 +322,6 @@ function togglePasswordVisibility() {
     } else {
         passwordInput.type = 'password';
         toggleBtn.textContent = '👁️';
-    }
-}
-
-/**
- * إظهار/إخفاء مؤشر التحميل
- */
-function showLoadingSpinner(show = true) {
-    const spinner = document.getElementById('loadingSpinner');
-    const form = document.getElementById('loginForm');
-
-    if (spinner) {
-        spinner.style.display = show ? 'flex' : 'none';
-    }
-
-    if (form) {
-        form.style.display = show ? 'none' : 'block';
     }
 }
 

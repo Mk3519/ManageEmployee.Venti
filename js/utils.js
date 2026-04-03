@@ -224,12 +224,13 @@ function getHoursDifference(startTime, endTime) {
  * تنسيق العملة بـ الجنيه المصري (EGP)
  */
 function formatEgyptianCurrency(amount) {
-    return new Intl.NumberFormat('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 2,
+    // تنسيق بسيط: 7500 EGP
+    const formatted = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
         maximumFractionDigits: 2
     }).format(amount);
+    
+    return `${formatted} EGP`;
 }
 
 /**
@@ -391,4 +392,24 @@ async function retryFetch(url, options = {}, maxRetries = 3) {
         }
     }
     throw lastError;
+}
+
+/**
+ * إظهار دائرة التحميل
+ */
+function showLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.remove('hidden');
+    }
+}
+
+/**
+ * إخفاء دائرة التحميل
+ */
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.add('hidden');
+    }
 }

@@ -530,7 +530,7 @@ function displayAttendanceReport(data) {
             <td>${record.checkOut || '--'}</td>
             <td>${record.duration || '--'}</td>
             <td>
-                <span class="status-badge ${record.status === 'حاضر' ? 'status-present' : 'status-absent'}">
+                <span class="status-badge ${record.status === 'present' ? 'status-present' : 'status-absent'}">
                     ${record.status}
                 </span>
             </td>

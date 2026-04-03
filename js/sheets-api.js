@@ -5,7 +5,7 @@
 class SheetsAPI {
     constructor() {
         // ستحتاج لتعديل هذا الرابط بعد نشر Apps Script
-        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycyPswJeC4NRQI5zKj_1D6ElE12eSZ6Sx6_sbDjj7M3SFvCSp9O2mkFUQuUvV0oXmK-w/exec';
+        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytLStsBeHiOkgUlcwKjCfagb8OaHG5LAGkRm29ZP5xmxHllyYzYqoB6czUKa3CjpJ-mQ/exec';
         
         // ✅ تم تعيينه بنجاح! الآن الاتصال الفعلي يعمل
         this.isConfigured = true;

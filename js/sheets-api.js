@@ -5,7 +5,7 @@
 class SheetsAPI {
     constructor() {
         // ستحتاج لتعديل هذا الرابط بعد نشر Apps Script
-        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytLStsBeHiOkgUlcwKjCfagb8OaHG5LAGkRm29ZP5xmxHllyYzYqoB6czUKa3CjpJ-mQ/exec';
+        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0Kpd2pY1iQBnbiQAppUbGyXv--jndMuR14sKWmd1I78LzzGJ6MNdw9VGQd7rHsdAwqA/exec';
         
         // ✅ تم تعيينه بنجاح! الآن الاتصال الفعلي يعمل
         this.isConfigured = true;
@@ -496,6 +496,22 @@ class SheetsAPI {
         });
     }
 
+    /**
+     * الحصول على تقرير الحضور اليومي (من أسجل الموظفين)
+     * يعرض من حاضر اليوم ومن لم يحضر بعد
+     */
+    async getDailyAttendanceReport() {
+        // تنسيق التاريخ بصيغة DD/MM/YYYY لمطابقة صيغة البيانات في Google Sheets
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const todayFormatted = `${day}/${month}/${year}`;
+        
+        return this.get('getDailyAttendance', {
+            date: todayFormatted
+        });
+    }
 
 }
 

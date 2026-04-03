@@ -30,8 +30,14 @@ async function initializeAdminDashboard() {
         // تحميل الموظفين
         await loadAllEmployees();
 
+        // تحميل تقرير الحضور اليومي
+        await loadDailyAttendanceReport();
+
         // إعداد علامات التبويب
         setupTabs();
+
+        // إعداد فلاتر الحضور
+        setupAttendanceFilterListeners();
 
         // إعداد مستمعي الأحداث
         setupAdminEventListeners();
@@ -158,6 +164,17 @@ function setupAdminEventListeners() {
                     redirectTo('index.html');
                 }, 1000);
             }
+        });
+    }
+
+    // زر تحديث الحضور اليومي
+    const refreshAttendanceBtn = document.getElementById('refreshAttendanceBtn');
+    if (refreshAttendanceBtn) {
+        refreshAttendanceBtn.addEventListener('click', async function() {
+            showLoadingOverlay('Refreshing attendance data...');
+            await loadDailyAttendanceReport();
+            hideLoadingOverlay();
+            showSuccessMessage('✓ Attendance data refreshed successfully');
         });
     }
 
@@ -636,4 +653,262 @@ function saveWorkTimings() {
  */
 function formatCurrency(amount) {
     return formatEgyptianCurrency(amount);
+}
+
+/* ============================================
+   التقرير اليومي للحضور (Daily Attendance)
+   ============================================ */
+
+let dailyAttendanceData = {
+    present: [],
+    absent: [],
+    all: []
+};
+
+let currentAttendanceFilter = 'all';
+
+/**
+ * تحميل وعرض تقرير الحضور اليومي (البيانات الحقيقية من Google Sheets)
+ */
+async function loadDailyAttendanceReport() {
+    try {
+        // عرض loading spinner
+        showLoadingSpinner();
+
+        // تحديث تاريخ اليوم
+        updateTodayDate();
+
+        // جلب البيانات الحقيقية من Google Sheets via Apps Script
+        const result = await sheetsAPI.getDailyAttendanceReport();
+
+        // إخفاء loading spinner
+        hideLoadingSpinner();
+
+        if (result.success && result.data && Array.isArray(result.data)) {
+            console.log('✅ Attendance data loaded successfully:', result.data);
+            console.log('📅 Report Date:', result.date);
+            
+            processDailyAttendanceData(result.data);
+            displayDailyAttendanceReport();
+            updateAttendanceStats();
+            
+            showSuccessMessage(`Loaded ${result.data.length} employees from Google Sheets`);
+        } else {
+            // إذا كانت الاستجابة غير صحيحة
+            console.error('❌ Invalid API response:', result);
+            hideLoadingSpinner();
+            showErrorMessage('Failed to load attendance data: ' + (result.message || 'Unknown error'));
+            
+            // عرض الجدول فارغ
+            dailyAttendanceData = { present: [], absent: [], all: [] };
+            displayDailyAttendanceReport();
+            updateAttendanceStats();
+        }
+    } catch (error) {
+        console.error('Error loading daily attendance:', error);
+        hideLoadingSpinner();
+        showErrorMessage('Connection error: ' + error.message);
+        
+        // عرض الجدول فارغ
+        dailyAttendanceData = { present: [], absent: [], all: [] };
+        displayDailyAttendanceReport();
+        updateAttendanceStats();
+    }
+}
+
+/**
+ * تحديث تاريخ اليوم
+ */
+function updateTodayDate() {
+    const todayElement = document.getElementById('todayDate');
+    if (todayElement) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const today = new Date().toLocaleDateString('en-US', options);
+        todayElement.textContent = `Today: ${today}`;
+    }
+}
+
+/**
+ * معالجة بيانات الحضور اليومي
+ */
+function processDailyAttendanceData(data) {
+    dailyAttendanceData = {
+        present: [],
+        absent: [],
+        all: []
+    };
+
+    if (!Array.isArray(data)) {
+        console.error('❌ Data is not an array:', data);
+        console.error('Type:', typeof data);
+        return;
+    }
+
+    console.log(`📊 معالجة ${data.length} موظف...`);
+
+    // فصل الحاضرين والغائبين
+    data.forEach((employee, index) => {
+        // تجاهل الموظفين الفارغين
+        if (!employee || Object.keys(employee).length === 0) {
+            console.warn(`⚠️ موظف رقم ${index} فارغ ({})`);
+            return;
+        }
+
+        const employeeRecord = {
+            id: employee.id || employee.employeeID || '--',
+            name: employee.name || 'Unknown',
+            position: employee.position || '--',
+            checkInTime: employee.checkInTime || employee.checkin_time || '--',
+            status: employee.status || 'absent',
+            device: employee.device || employee.deviceID || '--'
+        };
+
+        // التحقق من البيانات
+        if (!employeeRecord.id || employeeRecord.id === '--') {
+            console.warn(`⚠️ موظف بدون ID:`, employeeRecord);
+        }
+
+        dailyAttendanceData.all.push(employeeRecord);
+
+        if (employeeRecord.status === 'present' || employeeRecord.checkInTime !== '--') {
+            dailyAttendanceData.present.push(employeeRecord);
+            console.log(`✅ موظف حاضر: ${employeeRecord.name} (${employeeRecord.id}) - الوقت: ${employeeRecord.checkInTime}`);
+        } else {
+            dailyAttendanceData.absent.push(employeeRecord);
+        }
+    });
+
+    console.log('📊 ملخص البيانات:', {
+        present: dailyAttendanceData.present.length,
+        absent: dailyAttendanceData.absent.length,
+        total: dailyAttendanceData.all.length
+    });
+    console.log('🔍 البيانات الكاملة:', dailyAttendanceData);
+}
+
+/**
+ * تحميل بيانات تجريبية
+ */
+function loadDemoAttendanceData() {
+    const demoDataPresent = [
+        { id: '001', name: 'Ahmed Mohammed', position: 'Engineer', checkInTime: '08:15', status: 'present', device: 'DEV-001' },
+        { id: '002', name: 'Fatima Ali', position: 'Accountant', checkInTime: '08:30', status: 'present', device: 'DEV-002' },
+        { id: '003', name: 'Mohammed Salem', position: 'Sales', checkInTime: '08:45', status: 'present', device: 'DEV-003' },
+        { id: '004', name: 'Sara Ibrahim', position: 'HR', checkInTime: '09:00', status: 'present', device: 'DEV-004' }
+    ];
+
+    const demoDataAbsent = [
+        { id: '005', name: 'Noor Hassan', position: 'Developer', checkInTime: '--', status: 'absent', device: '--' },
+        { id: '006', name: 'Layla Ahmed', position: 'Designer', checkInTime: '--', status: 'absent', device: '--' },
+        { id: '007', name: 'Omar Khalid', position: 'Manager', checkInTime: '--', status: 'absent', device: '--' }
+    ];
+
+    dailyAttendanceData = {
+        present: demoDataPresent,
+        absent: demoDataAbsent,
+        all: [...demoDataPresent, ...demoDataAbsent]
+    };
+}
+
+/**
+ * تحديث إحصائيات الحضور
+ */
+function updateAttendanceStats() {
+    const presentCount = dailyAttendanceData.present.length;
+    const absentCount = dailyAttendanceData.absent.length;
+    const totalCount = dailyAttendanceData.all.length;
+
+    document.getElementById('presentCount').textContent = presentCount;
+    document.getElementById('absentCount').textContent = absentCount;
+    document.getElementById('totalCount').textContent = totalCount;
+}
+
+/**
+ * عرض تقرير الحضور اليومي في جدول
+ */
+function displayDailyAttendanceReport() {
+    const tbody = document.getElementById('dailyAttendanceTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    let dataToDisplay = [];
+    
+    // تحديد البيانات المراد عرضها بناءً على الفلتر الحالي
+    if (currentAttendanceFilter === 'present') {
+        dataToDisplay = dailyAttendanceData.present;
+    } else if (currentAttendanceFilter === 'absent') {
+        dataToDisplay = dailyAttendanceData.absent;
+    } else {
+        dataToDisplay = dailyAttendanceData.all;
+    }
+
+    if (dataToDisplay.length === 0) {
+        const message = currentAttendanceFilter === 'all' 
+            ? 'No employee data available' 
+            : `No ${currentAttendanceFilter} employees found`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center">${message}</td></tr>`;
+        return;
+    }
+
+    dataToDisplay.forEach(emp => {
+        const row = document.createElement('tr');
+        const statusBadgeClass = emp.status === 'present' ? 'status-present' : 'status-absent';
+        const statusText = emp.status === 'present' ? 'Present' : 'Not Checked In';
+        
+        row.innerHTML = `
+            <td>${emp.id}</td>
+            <td><strong>${emp.name}</strong></td>
+            <td>${emp.checkInTime}</td>
+            <td>
+                <span class="status-badge ${statusBadgeClass}">
+                    ${statusText}
+                </span>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+/**
+ * إعداد مستمعي الأحداث للفلاتر
+ */
+function setupAttendanceFilterListeners() {
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // إزالة active من جميع الفلاتر
+            filterTabs.forEach(t => t.classList.remove('active'));
+            
+            // إضافة active للفلتر المختار
+            this.classList.add('active');
+            
+            // تحديث الفلتر الحالي
+            currentAttendanceFilter = this.dataset.filter;
+            
+            // عرض البيانات المفلترة
+            displayDailyAttendanceReport();
+        });
+    });
+}
+
+/**
+ * عرض loading overlay
+ */
+/**
+ * عرض تفاصيل الموظف
+ */
+function viewEmployeeDetails(employeeID) {
+    const employee = dailyAttendanceData.all.find(emp => emp.id === employeeID);
+    if (employee) {
+        alert(`
+Employee Details:
+ID: ${employee.id}
+Name: ${employee.name}
+Position: ${employee.position}
+Check-In Time: ${employee.checkInTime}
+Status: ${employee.status === 'present' ? 'Present' : 'Not Checked In'}
+Device: ${employee.device}
+        `);
+    }
 }

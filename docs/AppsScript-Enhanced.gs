@@ -152,6 +152,10 @@ function doGet(e) {
         return handleGetSettings(e);
       case 'checkInConditions':
         return handleCheckInConditions(e);
+      case 'getDailyAttendance':
+        return handleGetDailyAttendance(e);
+      case 'diagnostics':
+        return handleDiagnostics();
       default:
         return jsonResponse({ success: false, message: 'إجراء غير معروف' });
     }
@@ -869,6 +873,181 @@ function handleGetAllEmployees(e) {
     return jsonResponse({
       success: false,
       message: 'خطأ: ' + error.toString()
+    });
+  }
+}
+
+/**
+ * دالة تشخيص البيانات
+ */
+function handleDiagnostics() {
+  try {
+    const response = {
+      timestamp: new Date().toISOString(),
+      sheets: {},
+      diagnostic: {}
+    };
+    
+    // قائمة الأوراق
+    const sheetNames = ss.getSheets().map(s => s.getName());
+    response.diagnostic.totalSheets = sheetNames.length;
+    response.diagnostic.sheetNames = sheetNames;
+    
+    // تشخيص كل ورقة مهمة
+    ['Employees', 'Attendance', 'Disciplines', 'Advances', 'Settings'].forEach(sheetName => {
+      try {
+        const sheet = ss.getSheetByName(sheetName);
+        if (sheet) {
+          const data = sheet.getDataRange().getValues();
+          response.sheets[sheetName] = {
+            found: true,
+            rowCount: data.length,
+            colCount: data.length > 0 ? data[0].length : 0,
+            headers: data.length > 0 ? data[0] : [],
+            sampleData: data.slice(1, 4) // أول 3 صفوف
+          };
+        } else {
+          response.sheets[sheetName] = { found: false };
+        }
+      } catch(e) {
+        response.sheets[sheetName] = { found: false, error: e.message };
+      }
+    });
+    
+    // تشخيص التاريخ الحالي
+    const today = new Date();
+    response.diagnostic.today = {
+      iso: today.toISOString(),
+      egyptDate: Utilities.formatDate(today, "Africa/Cairo", "dd/MM/yyyy"),
+      usDate: Utilities.formatDate(today, "Africa/Cairo", "m/d/yyyy")
+    };
+    
+    return jsonResponse({
+      success: true,
+      data: response
+    });
+    
+  } catch(error) {
+    return jsonResponse({
+      success: false,
+      message: 'خطأ في التشخيص: ' + error.toString(),
+      stack: error.stack
+    });
+  }
+}
+
+/**
+ * جلب تقرير الحضور اليومي (من أسجل الموظفين)
+ * يعرض من حاضر اليوم ومن لم يحضر بعد
+ */
+function handleGetDailyAttendance(e) {
+  try {
+    // الحصول على التاريخ الحالي بصيغ متعددة
+    const todayDate = new Date();
+    const todayEgypt = Utilities.formatDate(todayDate, "Africa/Cairo", "dd/MM/yyyy");
+    const todayUs = Utilities.formatDate(todayDate, "Africa/Cairo", "m/d/yyyy");
+    
+    Logger.log('📅 البحث عن البيانات لليوم (صيغ متعددة):');
+    Logger.log('   DD/MM/YYYY: ' + todayEgypt);
+    Logger.log('   M/D/YYYY: ' + todayUs);
+    
+    // جلب جميع الموظفين النشطين
+    const employeesSheet = ss.getSheetByName('Employees');
+    const employeesData = employeesSheet.getDataRange().getValues();
+    Logger.log('👥 عدد الموظفين المسترجع: ' + employeesData.length);
+    
+    // طباعة رؤوس الموظفين للتشخيص
+    if (employeesData.length > 0) {
+      Logger.log('📋 رؤوس الموظفين: ' + JSON.stringify(employeesData[0]));
+    }
+    
+    // جلب سجلات الحضور
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const attendanceData = attendanceSheet.getDataRange().getValues();
+    Logger.log('📊 عدد سجلات الحضور المسترجعة: ' + attendanceData.length);
+    
+    // طباعة رؤوس الحضور للتشخيص
+    if (attendanceData.length > 0) {
+      Logger.log('📋 رؤوس الحضور: ' + JSON.stringify(attendanceData[0]));
+    }
+    
+    // إنشاء قاموس بيانات الموظفين
+    const employeesMap = {};
+    
+    for (let i = 1; i < employeesData.length; i++) {
+      // تجاهل الصفوف الفارغة
+      if (!employeesData[i][0]) continue;
+      
+      const status = String(employeesData[i][7] || '').trim();
+      const empId = String(employeesData[i][0]).trim();
+      
+      if (status === 'Active' || status === 'نشط') {
+        employeesMap[empId] = {
+          id: employeesData[i][0],
+          name: employeesData[i][1] || 'Unknown',
+          position: employeesData[i][2] || '--',
+          phone: employeesData[i][4] || '--',
+          email: employeesData[i][5] || '--',
+          status: 'absent',
+          checkInTime: '--',
+          device: '--'
+        };
+      }
+    }
+    
+    Logger.log('✅ عدد الموظفين النشطين: ' + Object.keys(employeesMap).length);
+    
+    // البحث عن سجلات الحضور لليوم
+    let presentCount = 0;
+    for (let i = 1; i < attendanceData.length; i++) {
+      // تجاهل الصفوف الفارغة
+      if (!attendanceData[i][0] || !attendanceData[i][1]) continue;
+      
+      const attendanceDate = String(attendanceData[i][1]).trim();
+      const employeeID = String(attendanceData[i][0]).trim();
+      
+      // مقارنة التاريخ بصيغ متعددة
+      const dateMatches = (attendanceDate === todayEgypt || 
+                           attendanceDate === todayUs ||
+                           attendanceDate.includes(todayDate.getDate() + ''));
+      
+      if (dateMatches && employeesMap[employeeID]) {
+        employeesMap[employeeID].status = 'present';
+        employeesMap[employeeID].checkInTime = String(attendanceData[i][2]).trim() || '--'; // وقت الحضور
+        employeesMap[employeeID].device = String(attendanceData[i][4]).trim() || '--'; // جهاز الدخول
+        presentCount++;
+        
+        Logger.log(`✅ موظف حاضر: ${employeeID} (${employeesMap[employeeID].name}) - الوقت: ${employeesMap[employeeID].checkInTime}`);
+      }
+    }
+    
+    // تحويل الخريطة إلى مصفوفة
+    const dailyReport = Object.values(employeesMap);
+    const absentCount = dailyReport.filter(e => e.status === 'absent').length;
+    
+    Logger.log('📊 الإحصائيات النهائية:');
+    Logger.log('   ✅ الحاضرين: ' + presentCount);
+    Logger.log('   ❌ الغائبين: ' + absentCount);
+    Logger.log('   👥 الإجمالي: ' + dailyReport.length);
+    Logger.log('📦 البيانات المرسلة: ' + JSON.stringify(dailyReport.slice(0, 2))); // عينة من البيانات
+    
+    return jsonResponse({
+      success: true,
+      data: dailyReport,
+      date: todayEgypt,
+      stats: {
+        present: presentCount,
+        absent: absentCount,
+        total: dailyReport.length
+      }
+    });
+  
+  } catch(error) {
+    Logger.log('❌ خطأ في handleGetDailyAttendance: ' + error.toString());
+    Logger.log('📍 السطر: ' + error.stack);
+    return jsonResponse({
+      success: false,
+      message: 'خطأ في جلب بيانات الحضور اليومية: ' + error.toString()
     });
   }
 }

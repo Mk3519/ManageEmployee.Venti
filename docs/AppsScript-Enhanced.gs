@@ -315,7 +315,7 @@ function handleCheckInConditions(e) {
 /**
  * التحقق من شروط الحضور:
  * 1- لا يمكن عمل حضور مرتين في نفس اليوم
- * 2- إذا تم نسيان الانصراف يتم عمل انصراف تلقائي للامس ثم حضور جديد
+
  */
 function validateCheckInConditions(employeeID, timestamp) {
   try {

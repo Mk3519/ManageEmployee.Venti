@@ -166,7 +166,7 @@ class DeviceFingerprint {
     /**
      * الحصول على الموقع الجغرافي الحالي (محسّن)
      */
-    static async getCurrentLocation(timeout = 30000) {
+    static async getCurrentLocation(timeout = 90000) {
         return new Promise((resolve, reject) => {
             if (!DeviceFingerprint.isGeolocationSupported()) {
                 reject({
@@ -177,9 +177,9 @@ class DeviceFingerprint {
             }
 
             const options = {
-                enableHighAccuracy: true,
+                enableHighAccuracy: false,
                 timeout: timeout,
-                maximumAge: 0
+                maximumAge: 30000
             };
 
             navigator.geolocation.getCurrentPosition(
@@ -260,7 +260,7 @@ class DeviceFingerprint {
             0: 'خطأ غير محدد في الموقع الجغرافي',
             1: 'لم يتم منح إذن الوصول للموقع. يرجى تفعيل الموقع',
             2: 'تعذر الحصول على الموقع. تأكد من تفعيل GPS',
-            3: 'انتهت مهلة الوقت المخصصة للحصول على الموقع'
+            3: 'تأخر في الحصول على الموقع. تأكد من إتصال GPS جيد وحاول مرة أخرى'
         };
         return messages[code] || 'خطأ غير معروف';
     }

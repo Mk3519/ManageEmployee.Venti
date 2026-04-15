@@ -337,6 +337,13 @@ function togglePasswordVisibility() {
  * تسجيل الخروج
  */
 function logout() {
+    // مسح cache عند الخروج + إيقاف الـ auto-updates
+    if (sheetsAPI && typeof sheetsAPI.clearCache === 'function') {
+        sheetsAPI.clearCache();
+    }
+    if (typeof stopAutoUpdate === 'function') {
+        stopAutoUpdate();
+    }
     clearUserSession();
     showSuccessMessage('تم تسجيل الخروج بنجاح');
     setTimeout(() => {

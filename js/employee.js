@@ -469,6 +469,7 @@ function verifyDeviceID() {
 /**
  * التحقق من موقع مكان العمل (بدون حفظ البيانات)
  * فقط للتحقق من أن الموظف داخل النطاق المسموح
+ * يستخدم إعادة محاولة ذكية للحصول على الموقع
  */
 async function verifyOfficeLocation() {
     try {
@@ -480,13 +481,37 @@ async function verifyOfficeLocation() {
         // التحقق من أن الإحداثيات موجودة
         if (!officeLatitude || !officeLongitude) {
             console.error('❌ إحداثيات مكان العمل غير محفوظة!');
-            return { safe: false, message: '❌ إحداثيات مكان العمل غير محفوظة. يرجى تحديثها من قائمة الإإدارة' };
+            return { safe: false, message: '❌ إحداثيات مكان العمل غير محفوظة. يرجى تحديثها من المدير' };
         }
 
-        // الحصول على موقع المستخدم الحالي
-        const currentLocation = await DeviceFingerprint.getCurrentLocation(15000);
-        if (!currentLocation) {
-            return { safe: false, message: '❌ فشل الحصول على موقعك الجغرافي' };
+        // الحصول على موقع المستخدم الحالي مع إعادة محاولة ذكية
+        let currentLocation;
+        try {
+            currentLocation = await DeviceFingerprint.getCurrentLocationWithRetry(10000, 15000);
+        } catch (gpsError) {
+            // معالجة أخطاء GPS المختلفة
+            if (gpsError.code === 1) {
+                console.error('❌ تم رفض إذن الموقع');
+                return { 
+                    safe: false, 
+                    message: '🔒 يرجى السماح بالوصول للموقع في إعدادات المتصفح\n(Settings → Privacy and security → Location)',
+                    error: true 
+                };
+            } else if (gpsError.code === 3) {
+                console.error('⏱️ انتهت مهلة الحصول على الموقع');
+                return { 
+                    safe: false, 
+                    message: '⏱️ تأخر في الحصول على الموقع. تأكد من:\n✓ إشارة GPS قوية\n✓ اتصال إنترنت جيد\n✓ حاول مرة أخرى',
+                    error: true 
+                };
+            } else {
+                console.error('❌ خطأ في الحصول على الموقع:', gpsError.message);
+                return { 
+                    safe: false, 
+                    message: '❌ لم نتمكن من الحصول على موقعك. حاول مرة أخرى: ' + gpsError.message,
+                    error: true 
+                };
+            }
         }
 
         // حساب المسافة بين موقع المستخدم وموقع مكان العمل
@@ -516,13 +541,14 @@ async function verifyOfficeLocation() {
         }
 
     } catch (error) {
-        console.error('❌ خطأ في التحقق من الموقع:', error);
-        return { safe: false, message: '❌ خطأ في التحقق من الموقع: ' + error.message, error: true };
+        console.error('❌ خطأ غير متوقع في التحقق من الموقع:', error);
+        return { safe: false, message: '❌ خطأ في النظام: ' + error.message, error: true };
     }
 }
 
 /**
  * التعامل مع تسجيل الحضور مع التحقق من الموقع (بدون حفظ بيانات GPS)
+ * مع معالجة محسنة للأخطاء وإعادة محاولة تلقائية عند فشل الموقع
  */
 async function handleCheckIn() {
     try {
@@ -563,7 +589,13 @@ async function handleCheckIn() {
         const locationCheck = await verifyOfficeLocation();
         
         if (!locationCheck.safe) {
-            showErrorMessage(locationCheck.message);
+            // إذا كان الخطأ بسبب GPS، عرض رسالة أكثر وضوحاً
+            if (locationCheck.error) {
+                console.warn('⚠️ خطأ في GPS:', locationCheck.message);
+                showErrorMessage(locationCheck.message + '\n\n💡 اضغط "حضور" مجدداً للمحاولة');
+            } else {
+                showErrorMessage(locationCheck.message);
+            }
             checkInBtn.disabled = false;
             checkInBtn.innerHTML = '<span class="button-icon">📍</span><span>حضور</span>';
             return;
@@ -596,7 +628,18 @@ async function handleCheckIn() {
         }
     } catch (error) {
         console.error('❌ Check-in error:', error);
-        showErrorMessage('❌ خطأ في تسجيل الحضور: ' + error.message);
+        
+        // معالجة أخطاء محددة
+        let errorMsg = 'خطأ في تسجيل الحضور';
+        if (error.message.includes('GPS') || error.message.includes('Geolocation')) {
+            errorMsg = '❌ خطأ في الحصول على موقعك.\n💡 جرّب مرة أخرى أو اتصل بالدعم الفني';
+        } else if (error.message.includes('Network') || error.message.includes('timeout')) {
+            errorMsg = '❌ خطأ في الاتصال.\n💡 تأكد من اتصالك بالإنترنت وحاول مرة أخرى';
+        } else {
+            errorMsg = error.message;
+        }
+        
+        showErrorMessage('❌ ' + errorMsg);
     } finally {
         const checkInBtn = document.getElementById('checkInBtn');
         checkInBtn.disabled = false;

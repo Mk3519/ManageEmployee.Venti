@@ -154,6 +154,8 @@ function doGet(e) {
         return handleCheckInConditions(e);
       case 'getDailyAttendance':
         return handleGetDailyAttendance(e);
+      case 'getMonthlyAttendance':
+        return handleGetMonthlyAttendance(e);
       case 'diagnostics':
         return handleDiagnostics();
       default:
@@ -997,27 +999,63 @@ function handleGetDailyAttendance(e) {
     
     Logger.log('✅ عدد الموظفين النشطين: ' + Object.keys(employeesMap).length);
     
-    // البحث عن سجلات الحضور لليوم
+    // ✅ البحث عن سجلات الحضور لـ **اليوم فقط**
+    Logger.log(`📅 البحث عن بيانات اليوم فقط: ${todayEgypt}`);
+    
     let presentCount = 0;
     for (let i = 1; i < attendanceData.length; i++) {
       // تجاهل الصفوف الفارغة
       if (!attendanceData[i][0] || !attendanceData[i][1]) continue;
       
-      const attendanceDate = String(attendanceData[i][1]).trim();
+      // ✅ تحويل التاريخ إلى string بصيغة مصرية
+      let attendanceDateCell = attendanceData[i][1];
+      let attendanceDate = '';
+      
+      if (attendanceDateCell instanceof Date) {
+        attendanceDate = Utilities.formatDate(attendanceDateCell, "Africa/Cairo", "dd/MM/yyyy");
+      } else {
+        attendanceDate = String(attendanceDateCell).trim();
+      }
+      
       const employeeID = String(attendanceData[i][0]).trim();
       
-      // مقارنة التاريخ بصيغ متعددة
-      const dateMatches = (attendanceDate === todayEgypt || 
-                           attendanceDate === todayUs ||
-                           attendanceDate.includes(todayDate.getDate() + ''));
+      Logger.log(`🔍 مقارنة: ${attendanceDate} === ${todayEgypt} ?`);
       
-      if (dateMatches && employeesMap[employeeID]) {
-        employeesMap[employeeID].status = 'present';
-        employeesMap[employeeID].checkInTime = String(attendanceData[i][2]).trim() || '--'; // وقت الحضور
-        employeesMap[employeeID].device = String(attendanceData[i][4]).trim() || '--'; // جهاز الدخول
-        presentCount++;
+      // ✅ مقارنة التاريخ - **اليوم فقط!**
+      if (attendanceDate === todayEgypt && employeesMap[employeeID]) {
+        // ✅ تحويل checkInTime إلى string بصيغة صحيحة (HH:mm:ss)
+        let checkInValue = attendanceData[i][2];
+        let checkInTime = '';
+        if (checkInValue instanceof Date) {
+          checkInTime = Utilities.formatDate(checkInValue, "Africa/Cairo", "HH:mm:ss");
+        } else {
+          checkInTime = String(checkInValue).trim() || '--';
+        }
+        employeesMap[employeeID].checkInTime = checkInTime;
         
-        Logger.log(`✅ موظف حاضر: ${employeeID} (${employeesMap[employeeID].name}) - الوقت: ${employeesMap[employeeID].checkInTime}`);
+        // ✅ تحويل checkOutTime إلى string بصيغة صحيحة (HH:mm:ss)
+        let checkOutValue = attendanceData[i][3];
+        let checkOutTime = '';
+        if (checkOutValue instanceof Date) {
+          checkOutTime = Utilities.formatDate(checkOutValue, "Africa/Cairo", "HH:mm:ss");
+        } else if (checkOutValue) {
+          checkOutTime = String(checkOutValue).trim();
+        } else {
+          checkOutTime = '--';
+        }
+        employeesMap[employeeID].checkOutTime = checkOutTime;
+        
+        // ✅ **قرار الحالة: إذا كان أي وقت = "OFF" أو "--" فهو غائب**
+        if (checkInTime === 'OFF' || checkInTime === '--' || checkOutTime === 'OFF') {
+          employeesMap[employeeID].status = 'absent';
+          Logger.log(`❌ موظف غائب: ${employeeID} (${employeesMap[employeeID].name}) - الحضور: ${checkInTime} - الانصراف: ${checkOutTime}`);
+        } else {
+          employeesMap[employeeID].status = 'present';
+          presentCount++;
+          Logger.log(`✅ موظف حاضر: ${employeeID} (${employeesMap[employeeID].name}) - الحضور: ${checkInTime} - الانصراف: ${checkOutTime}`);
+        }
+        
+        employeesMap[employeeID].device = String(attendanceData[i][5]).trim() || '--'; // جهاز الدخول (العمود 5)
       }
     }
     
@@ -1048,6 +1086,125 @@ function handleGetDailyAttendance(e) {
     return jsonResponse({
       success: false,
       message: 'خطأ في جلب بيانات الحضور اليومية: ' + error.toString()
+    });
+  }
+}
+
+/**
+ * جلب بيانات الحضور الشهرية لجميع الموظفين
+ */
+function handleGetMonthlyAttendance(e) {
+  try {
+    // الحصول على الشهر والسنة الحاليين من المعاملات أو استخدام الحالي
+    const now = new Date();
+    const currentMonth = e.parameter.month ? parseInt(e.parameter.month) : now.getMonth() + 1;
+    const currentYear = e.parameter.year ? parseInt(e.parameter.year) : now.getFullYear();
+    
+    Logger.log(`📅 جاري البحث عن بيانات الشهر: ${currentMonth}/${currentYear}`);
+    
+    // جلب جميع الموظفين النشطين
+    const employeesSheet = ss.getSheetByName('Employees');
+    const employeesData = employeesSheet.getDataRange().getValues();
+    
+    // جلب سجلات الحضور
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const attendanceData = attendanceSheet.getDataRange().getValues();
+    
+    // إنشاء قاموس الموظفين
+    const employeesMap = {};
+    for (let i = 1; i < employeesData.length; i++) {
+      if (!employeesData[i][0]) continue;
+      const status = String(employeesData[i][7] || '').trim();
+      const empId = String(employeesData[i][0]).trim();
+      
+      if (status === 'Active' || status === 'نشط') {
+        employeesMap[empId] = {
+          id: employeesData[i][0],
+          name: employeesData[i][1] || 'Unknown'
+        };
+      }
+    }
+    
+    // جمع البيانات الشهرية
+    const monthlyData = [];
+    
+    for (let i = 1; i < attendanceData.length; i++) {
+      if (!attendanceData[i][0] || !attendanceData[i][1]) continue;
+      
+      // تحويل التاريخ
+      let attendanceDateCell = attendanceData[i][1];
+      let attendanceDate = '';
+      
+      if (attendanceDateCell instanceof Date) {
+        attendanceDate = Utilities.formatDate(attendanceDateCell, "Africa/Cairo", "dd/MM/yyyy");
+      } else {
+        attendanceDate = String(attendanceDateCell).trim();
+      }
+      
+      // استخراج الشهر والسنة من التاريخ
+      const dateParts = attendanceDate.split('/');
+      if (dateParts.length < 3) continue;
+      
+      const [day, month, year] = [parseInt(dateParts[0]), parseInt(dateParts[1]), parseInt(dateParts[2])];
+      
+      // التحقق من الشهر والسنة
+      if (month !== currentMonth || year !== currentYear) continue;
+      
+      const employeeID = String(attendanceData[i][0]).trim();
+      if (!employeesMap[employeeID]) continue;
+      
+      // تحويل أوقات الحضور والانصراف
+      let checkInTime = '--';
+      let checkOutTime = '--';
+      let status = 'absent';
+      
+      let checkInValue = attendanceData[i][2];
+      if (checkInValue instanceof Date) {
+        checkInTime = Utilities.formatDate(checkInValue, "Africa/Cairo", "HH:mm:ss");
+      } else if (checkInValue) {
+        checkInTime = String(checkInValue).trim() || '--';
+      }
+      
+      let checkOutValue = attendanceData[i][3];
+      if (checkOutValue instanceof Date) {
+        checkOutTime = Utilities.formatDate(checkOutValue, "Africa/Cairo", "HH:mm:ss");
+      } else if (checkOutValue) {
+        checkOutTime = String(checkOutValue).trim();
+      } else {
+        checkOutTime = '--';
+      }
+      
+      // قرار الحالة
+      if (checkInTime === 'OFF' || checkInTime === '--' || checkOutTime === 'OFF') {
+        status = 'absent';
+      } else {
+        status = 'present';
+      }
+      
+      monthlyData.push({
+        id: employeeID,
+        name: employeesMap[employeeID].name,
+        date: attendanceDate,
+        checkInTime: checkInTime,
+        checkOutTime: checkOutTime,
+        status: status
+      });
+    }
+    
+    Logger.log(`✅ تم جمع ${monthlyData.length} سجل حضور للشهر ${currentMonth}/${currentYear}`);
+    
+    return jsonResponse({
+      success: true,
+      data: monthlyData,
+      period: `${currentMonth}/${currentYear}`,
+      count: monthlyData.length
+    });
+    
+  } catch(error) {
+    Logger.log('❌ خطأ في handleGetMonthlyAttendance: ' + error.toString());
+    return jsonResponse({
+      success: false,
+      message: 'خطأ في جلب بيانات الحضور الشهرية: ' + error.toString()
     });
   }
 }
@@ -1909,6 +2066,161 @@ function handleUpdateSettings(e) {
       success: false,
       message: '❌ خطأ في تحديث الإعدادات: ' + error.toString()
     });
+  }
+}
+
+// ============================================
+// دوال تسجيل الموظفين الغائبين تلقائياً (OFF/OFF)
+// ============================================
+
+/**
+ * الحصول على تاريخ الأمس بصيغة DD/MM/YYYY
+ * @returns {string} التاريخ بصيغة DD/MM/YYYY
+ */
+function getYesterdayDate() {
+  try {
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - (24 * 60 * 60 * 1000));
+    return Utilities.formatDate(yesterday, "Africa/Cairo", "dd/MM/yyyy");
+  } catch(error) {
+    Logger.log('❌ خطأ في حساب تاريخ الأمس: ' + error.toString());
+    return formatDate(new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
+  }
+}
+
+/**
+ * الحصول على جميع الموظفين النشطين
+ * @returns {Array} مصفوفة بيانات الموظفين النشطين
+ */
+function getActiveEmployees() {
+  try {
+    const employeesSheet = ss.getSheetByName('Employees');
+    const data = employeesSheet.getDataRange().getValues();
+    const activeEmployees = [];
+    
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][7]) === 'Active') { // Status column (index 7)
+        activeEmployees.push({
+          id: data[i][0],
+          name: data[i][1],
+          status: data[i][7]
+        });
+      }
+    }
+    
+    return activeEmployees;
+  } catch(error) {
+    Logger.log('❌ خطأ في جلب الموظفين النشطين: ' + error.toString());
+    return [];
+  }
+}
+
+/**
+ * التحقق من وجود سجل حضور للموظف في تاريخ محدد
+ * @param {string} employeeID معرف الموظف
+ * @param {string} dateString التاريخ بصيغة DD/MM/YYYY
+ * @returns {boolean} true إذا كان موجود سجل
+ */
+function employeeHasRecordForDate(employeeID, dateString) {
+  try {
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const data = attendanceSheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      const rowEmployeeID = String(data[i][0]);
+      const rowDate = data[i][1];
+      
+      // تحويل التاريخ إلى string بصيغة DD/MM/YYYY إذا كان Date object
+      let formattedDate = '';
+      if (typeof rowDate === 'object' && rowDate instanceof Date) {
+        formattedDate = Utilities.formatDate(rowDate, "Africa/Cairo", "dd/MM/yyyy");
+      } else {
+        formattedDate = String(rowDate).trim();
+      }
+      
+      if (rowEmployeeID === String(employeeID) && formattedDate === dateString) {
+        return true;
+      }
+    }
+    
+    return false;
+  } catch(error) {
+    Logger.log('❌ خطأ في التحقق من السجل: ' + error.toString());
+    return false;
+  }
+}
+
+/**
+ * تسجيل الموظفين الغائبين تلقائياً (OFF/OFF)
+ * يتم استدعاء هذه الدالة يومياً في منتصف الليل (00:00 بتوقيت مصر)
+ * الـ Trigger: Time-driven → Day timer → 12:00 AM → Africa/Cairo
+ */
+function markAbsentEmployees() {
+  try {
+    ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    
+    // الحصول على الوقت الحالي
+    const timestamp = new Date();
+    const formattedTime = Utilities.formatDate(timestamp, "Africa/Cairo", "dd/MM/yyyy HH:mm:ss");
+    
+    Logger.log('✅ ' + formattedTime + ' - بدء تسجيل الموظفين الغائبين');
+    
+    // الحصول على تاريخ الأمس
+    const yesterdayDate = getYesterdayDate();
+    Logger.log('📅 التاريخ المستهدف: ' + yesterdayDate);
+    
+    // الحصول على جميع الموظفين النشطين
+    const activeEmployees = getActiveEmployees();
+    Logger.log('👥 عدد الموظفين النشطين: ' + activeEmployees.length);
+    
+    if (activeEmployees.length === 0) {
+      Logger.log('⚠️ لا توجد موظفين نشطين للتسجيل');
+      return;
+    }
+    
+    // الحصول على sheet الحضور
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    let countAdded = 0;
+    let countSkipped = 0;
+    
+    // المسح على كل موظف نشط
+    for (let i = 0; i < activeEmployees.length; i++) {
+      const employeeID = activeEmployees[i].id;
+      const employeeName = activeEmployees[i].name;
+      
+      // التحقق من وجود سجل للموظف في اليوم السابق
+      const hasRecord = employeeHasRecordForDate(employeeID, yesterdayDate);
+      
+      if (!hasRecord) {
+        // تحويل تاريخ الأمس إلى Date object
+        const dateParts = yesterdayDate.split('/');
+        const yesterdayDateObj = new Date(dateParts[2], parseInt(dateParts[1]) - 1, dateParts[0]);
+        
+        // إضافة سجل OFF/OFF
+        attendanceSheet.appendRow([
+          employeeID,                    // Employee ID (column 1)
+          yesterdayDateObj,              // Date (column 2) - كـ Date object
+          'OFF',                         // Check-in (column 3)
+          'OFF',                         // Check-out (column 4)
+          '',                            // Hours (column 5)
+          '',                            // Device ID (column 6)
+          'absent'                       // Status (column 7)
+        ]);
+        
+        Logger.log('✅ موظف "' + employeeID + '" (' + employeeName + ') لم يسجل بتاريخ ' + yesterdayDate + ' → تم إضافة OFF/OFF');
+        countAdded++;
+      } else {
+        Logger.log('✅ موظف "' + employeeID + '" (' + employeeName + ') سجل بتاريخ ' + yesterdayDate + ' - تم تخطيه');
+        countSkipped++;
+      }
+    }
+    
+    Logger.log('✅ عدد الموظفين المسجلين تلقائياً: ' + countAdded);
+    Logger.log('✅ عدد الموظفين المتخطى: ' + countSkipped);
+    Logger.log('✅✅✅ انتهى التسجيل بنجاح في ' + formattedTime);
+    
+  } catch(error) {
+    Logger.log('❌ خطأ في تسجيل الموظفين الغائبين: ' + error.toString());
   }
 }
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#c67e7e">
     <title>Admin Dashboard - Attendance System</title>
+    <link rel="icon" href="image/logo.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <style>
@@ -47,12 +48,9 @@
             <!-- Tabs -->
             <div class="tabs-container">
                 <div class="tabs-header">
-                    <!--<button class="tab-btn active" data-tab="employees">Manage Employees</button>-->
+
                     <button class="tab-btn" data-tab="daily-attendance">Daily Attendance</button>
-                    <!--<button class="tab-btn" data-tab="disciplines">Disciplines & Advances</button>
-                    <button class="tab-btn" data-tab="reports">Reports</button>
-                    <button class="tab-btn" data-tab="devices">Device Management</button>
-                    <button class="tab-btn" data-tab="settings">Settings</button>-->
+
                 </div>
 
                 <!-- Tab: Daily Attendance -->
@@ -60,9 +58,18 @@
                     <h2>Daily Attendance Report</h2>
                     <div class="daily-attendance-header">
                         <div class="date-display">
-                            <span id="todayDate" class="date-text">Today: --</span>
+                            <div>
+                                <span id="todayDate" class="date-text">Today: --</span>
+                            </div>
+                            <div style="font-size: 0.875rem; color: #7a8896; margin-top: 5px;">
+                                <span id="lastUpdateTime">Last update: --</span>
+                            </div>
                         </div>
-                        <button id="refreshAttendanceBtn" class="btn btn-info">Refresh</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="refreshAttendanceBtn" class="btn btn-info">🔄 Refresh Now</button>
+                            <button id="downloadReportBtn" class="btn btn-success">📥 تقرير يومي</button>
+                            <button id="downloadMonthlyBtn" class="btn btn-success">📅 تقرير شهري</button>
+                        </div>
                     </div>
 
                     <!-- Attendance Stats -->
@@ -105,252 +112,27 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Check-In</th>
+                                    <th>Check-Out</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="dailyAttendanceTableBody">
                                 <tr>
-                                    <td colspan="4" class="text-center">Loading attendance data...</td>
+                                    <td colspan="5" class="text-center">Loading attendance data...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Tab: Manage Employees -->
-                <!--<div id="employees" class="tab-content">
-                    <h2>Manage Employees</h2>
-                    <button id="addEmployeeBtn" class="btn btn-primary">+ Add New Employee</button>
-                    
-                    <div class="table-responsive" style="margin-top: 20px;">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Position</th>
-                                    <th>Salary</th>
-                                    <th>Phone</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employeesTableBody">
-                                <tr>
-                                    <td colspan="7" class="text-center">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
-                <!-- Tab: Disciplines & Advances -->
-                <!--<div id="disciplines" class="tab-content">
-                    <h2>Manage Disciplines & Advances</h2>
-                    <div class="form-row">
-                        <button id="addDisciplineBtn" class="btn btn-danger">+ Apply Discipline</button>
-                        <button id="addAdvanceBtn" class="btn btn-warning">+ Add Advance</button>
-                    </div>-->
-
-                    <!-- Disciplines table -->
-                    <!--<h3 style="margin-top: 30px;">Disciplines Record</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Employee</th>
-                                    <th>Type</th>
-                                    <th>Amount/Reason</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="disciplinesTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center">No data</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>-->
-
-                    <!-- Advances table -->
-                    <!--<h3 style="margin-top: 30px;">Advances Record</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Employee</th>
-                                    <th>Amount</th>
-                                    <th>Monthly Deduction</th>
-                                    <th>Remaining Months</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="advancesTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center">No data</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>-->
-
-                <!-- Tab: Reports -->
-                <!--<div id="reports" class="tab-content">
-                    <h2>Reports</h2>
-                    <div class="reports-container">
-                        <!-- Attendance report -->
-                        <!--<div class="report-card">
-                            <h3>Attendance & Check-Out Report</h3>
-                            <div class="report-controls">
-                                <input type="date" id="reportStartDate" class="form-control">
-                                <input type="date" id="reportEndDate" class="form-control">
-                                <button id="generateAttendanceReport" class="btn btn-info">Show Report</button>
-                                <button id="downloadAttendanceReport" class="btn btn-success">Download Excel</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="report-table" id="attendanceReportTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>ID</th>
-                                            <th>Date</th>
-                                            <th>Check In Time</th>
-                                            <th>Check Out Time</th>
-                                            <th>Duration</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="7" class="text-center">No data</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>-->
-
-                        <!-- Absence report -->
-                        <!--<div class="report-card">
-                            <h3>Absence Report</h3>
-                            <div class="report-controls">
-                                <input type="month" id="absenceReportMonth" class="form-control">
-                                <button id="generateAbsenceReport" class="btn btn-info">Show Report</button>
-                                <button id="downloadAbsenceReport" class="btn btn-success">Download Excel</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="report-table" id="absenceReportTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>ID</th>
-                                            <th>Absence Days</th>
-                                            <th>Percentage %</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="4" class="text-center">No data</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>-->
-
-                        <!-- Late report -->
-                        <!--<div class="report-card">
-                            <h3>Late Arrival Report</h3>
-                            <div class="report-controls">
-                                <input type="month" id="lateReportMonth" class="form-control">
-                                <button id="generateLateReport" class="btn btn-info">Show Report</button>
-                                <button id="downloadLateReport" class="btn btn-success">Download Excel</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="report-table" id="lateReportTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>ID</th>
-                                            <th>Late Times Count</th>
-                                            <th>Total Late Minutes</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="4" class="text-center">No data</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>-->
-
-                <!-- Tab: Device Management -->
-                <!--<div id="devices" class="tab-content">
-                    <h2>Device Change Requests</h2>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Employee</th>
-                                    <th>Old Device</th>
-                                    <th>New Device</th>
-                                    <th>Request Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="devicesTableBody">
-                                <tr>
-                                    <td colspan="6" class="text-center">No requests</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>-->
-
-                <!-- Tab: Settings -->
-                <!--<div id="settings" class="tab-content">
-                    <h2>Settings</h2>
-                    <div class="settings-section">
-                        <h3>Work Location</h3>
-                        <div class="form-group">
-                            <label>Latitude:</label>
-                            <input type="number" id="workLatitude" class="form-control" step="0.00001" placeholder="e.g.: 24.7136">
-                        </div>
-                        <div class="form-group">
-                            <label>Longitude:</label>
-                            <input type="number" id="workLongitude" class="form-control" step="0.00001" placeholder="e.g.: 46.6753">
-                        </div>
-                        <div class="form-group">
-                            <label>Allowed Distance Range (meters):</label>
-                            <input type="number" id="workRadius" class="form-control" value="100" placeholder="Distance in meters">
-                        </div>
-                        <button id="saveLocationBtn" class="btn btn-success">Save Location</button>
-                    </div>
-
-                    <div class="settings-section">
-                        <h3>Work Hours</h3>
-                        <div class="form-group">
-                            <label>Work Start Time:</label>
-                            <input type="time" id="workStartTime" class="form-control" value="08:00">
-                        </div>
-                        <div class="form-group">
-                            <label>Work End Time:</label>
-                            <input type="time" id="workEndTime" class="form-control" value="17:00">
-                        </div>
-                        <button id="saveTimingsBtn" class="btn btn-success">Save Hours</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>-->
 
     <!-- Modal for forms (will be added here dynamically) -->
     <div id="modalContainer"></div>
 
     <!-- Scripts -->
+    <!-- SheetJS XLSX Library for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/device-fingerprint.js"></script>
     <script src="js/sheets-api.js"></script>

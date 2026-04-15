@@ -165,9 +165,10 @@ class DeviceFingerprint {
 
     /**
      * الحصول على الموقع الجغرافي الحالي (محسّن)
-     * @param {number} timeout - المدة القصوى بالميلي ثانية (افتراضي: 15 ثانية)
+     * @param {number} timeout - المدة القصوى بالميلي ثانية (افتراضي: 20 ثانية)
+     * @param {boolean} highAccuracy - تفعيل دقة عالية (افتراضي: true)
      */
-    static async getCurrentLocation(timeout = 15000) {
+    static async getCurrentLocation(timeout = 20000, highAccuracy = true) {
         return new Promise((resolve, reject) => {
             if (!DeviceFingerprint.isGeolocationSupported()) {
                 reject({
@@ -178,9 +179,9 @@ class DeviceFingerprint {
             }
 
             const options = {
-                enableHighAccuracy: false,
-                timeout: Math.min(timeout, 15000),  // حد أقصى 15 ثانية
-                maximumAge: 45000  // استخدم بيانات حديثة (45 ثانية)
+                enableHighAccuracy: highAccuracy,
+                timeout: Math.min(timeout, 20000),  // حد أقصى 20 ثانية
+                maximumAge: 5000  // استخدم بيانات حديثة جداً (5 ثوانٍ)
             };
 
             navigator.geolocation.getCurrentPosition(
@@ -205,6 +206,40 @@ class DeviceFingerprint {
                 options
             );
         });
+    }
+
+    /**
+     * الحصول على الموقع الجغرافي مع إعادة محاولة ذكية
+     * محاولة أولى: enableHighAccuracy: false، timeout: 10 ثوانٍ
+     * إذا فشلت + كود الخطأ ليس "permission denied" → محاولة ثانية مع enableHighAccuracy: true
+     * @param {number} timeoutFirst - timeout للمحاولة الأولى (افتراضي: 10 ثوانٍ)
+     * @param {number} timeoutSecond - timeout للمحاولة الثانية (افتراضي: 15 ثانية)
+     * @returns {Promise<Object>} بيانات الموقع
+     */
+    static async getCurrentLocationWithRetry(timeoutFirst = 10000, timeoutSecond = 15000) {
+        try {
+            console.log('🔄 محاولة أولى للحصول على الموقع (enableHighAccuracy: false)...');
+            const location = await DeviceFingerprint.getCurrentLocation(timeoutFirst, false);
+            console.log('✅ تم الحصول على الموقع في المحاولة الأولى');
+            return location;
+        } catch (firstError) {
+            // إذا كان الخطأ "permission denied" - لا نحاول مرة أخرى
+            if (firstError.code === 1) {
+                console.error('❌ تم رفض إذن الموقع (Permission Denied)');
+                throw firstError;
+            }
+
+            // محاولة ثانية مع enableHighAccuracy: true فقط إذا لم يكن permission denied
+            try {
+                console.log('🔄 محاولة ثانية للحصول على الموقع (enableHighAccuracy: true)...');
+                const location = await DeviceFingerprint.getCurrentLocation(timeoutSecond, true);
+                console.log('✅ تم الحصول على الموقع في المحاولة الثانية');
+                return location;
+            } catch (secondError) {
+                console.error('❌ فشلت المحاولة الثانية أيضاً:', secondError.message);
+                throw secondError;
+            }
+        }
     }
 
     /**

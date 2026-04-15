@@ -165,8 +165,9 @@ class DeviceFingerprint {
 
     /**
      * الحصول على الموقع الجغرافي الحالي (محسّن)
+     * @param {number} timeout - المدة القصوى بالميلي ثانية (افتراضي: 15 ثانية)
      */
-    static async getCurrentLocation(timeout = 90000) {
+    static async getCurrentLocation(timeout = 15000) {
         return new Promise((resolve, reject) => {
             if (!DeviceFingerprint.isGeolocationSupported()) {
                 reject({
@@ -178,8 +179,8 @@ class DeviceFingerprint {
 
             const options = {
                 enableHighAccuracy: false,
-                timeout: timeout,
-                maximumAge: 30000
+                timeout: Math.min(timeout, 15000),  // حد أقصى 15 ثانية
+                maximumAge: 45000  // استخدم بيانات حديثة (45 ثانية)
             };
 
             navigator.geolocation.getCurrentPosition(

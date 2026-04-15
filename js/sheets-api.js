@@ -5,10 +5,14 @@
 class SheetsAPI {
     constructor() {
         // ستحتاج لتعديل هذا الرابط بعد نشر Apps Script
-        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzeW0LWp5pptpoHhg4JnJkjLdDan7MEPeCjsNnCVi6z-6aEXYTNSuxo2CZzoZN5AwSV8A/exec';
+        this.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGEiasLPFIwfbnCYcBwkbZBNyte8AqxAmHQDLjYIxgt-1naDxC3pVMp6kWqhzdwy5_Vg/exec';
         
         // ✅ تم تعيينه بنجاح! الآن الاتصال الفعلي يعمل
         this.isConfigured = true;
+        
+        // 🔄 Caching النتائج (5 دقائق صلاحية)
+        this.cache = new Map();
+        this.cacheTimeout = 5 * 60 * 1000;  // 5 دقائق
     }
 
     /**
@@ -27,12 +31,21 @@ class SheetsAPI {
     }
 
     /**
-     * إرسال طلب GET
+     * إرسال طلب GET مع Caching
      */
     async get(action, params = {}) {
         if (!this.isReady()) {
             console.warn('تنبيه: Apps Script لم يتم تكوينه بعد');
             return this.mockResponse('get', action, params);
+        }
+
+        // 🔍 التحقق من الـ cache
+        const cacheKey = `${action}_${JSON.stringify(params)}`;
+        const cached = this.cache.get(cacheKey);
+        
+        if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+            console.log(`✅ استجابة من cache ${action}:`, cached.data);
+            return cached.data;
         }
 
         try {
@@ -63,6 +76,12 @@ class SheetsAPI {
             }
 
             console.log(`✅ استجابة ${action}:`, data);
+            
+            // 💾 حفظ النتيجة في الـ cache
+            if (data.success) {
+                this.cache.set(cacheKey, { data, timestamp: Date.now() });
+            }
+            
             return data;
         } catch (error) {
             console.error('❌ خطأ في الطلب GET:', error);
@@ -71,6 +90,26 @@ class SheetsAPI {
                 message: 'فشل في الاتصال مع تطبيق الويب: ' + error.message
             };
         }
+    }
+    
+    /**
+     * مسح الـ cache (عند Logout أو Refresh)
+     */
+    clearCache() {
+        this.cache.clear();
+        console.log('✅ تم مسح الـ cache');
+    }
+    
+    /**
+     * مسح cache معين
+     */
+    clearCacheFor(action) {
+        for (let [key] of this.cache) {
+            if (key.startsWith(action)) {
+                this.cache.delete(key);
+            }
+        }
+        console.log(`✅ تم مسح الـ cache للـ ${action}`);
     }
 
     /**
@@ -378,6 +417,19 @@ class SheetsAPI {
 
 
     /**
+     * الحصول على تقرير الحضور اليومي مع caching محسّن
+     * يتم تحديثه كل 5 دقائق فقط
+     */
+    async getDailyAttendanceReport(forceRefresh = false) {
+        // إذا كان forceRefresh = true، مسح cache أولاً
+        if (forceRefresh) {
+            this.clearCacheFor('getDailyAttendance');
+        }
+        
+        return this.get('getDailyAttendance', {});
+    }
+
+    /**
      * الحصول على الإعدادات (GPS, أوقات العمل، إلخ)
      */
     async getSettings() {
@@ -493,23 +545,6 @@ class SheetsAPI {
             reportType: reportType,
             reportData: JSON.stringify(reportData),
             timestamp: new Date().toISOString()
-        });
-    }
-
-    /**
-     * الحصول على تقرير الحضور اليومي (من أسجل الموظفين)
-     * يعرض من حاضر اليوم ومن لم يحضر بعد
-     */
-    async getDailyAttendanceReport() {
-        // تنسيق التاريخ بصيغة DD/MM/YYYY لمطابقة صيغة البيانات في Google Sheets
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        const todayFormatted = `${day}/${month}/${year}`;
-        
-        return this.get('getDailyAttendance', {
-            date: todayFormatted
         });
     }
 

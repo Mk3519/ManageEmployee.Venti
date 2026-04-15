@@ -44,6 +44,7 @@ function clearUserSession() {
     // حفظ userID قبل حذفه
     const userID = getFromLocalStorage('userID');
     
+    // 🧹 مسح جميع البيانات المتعلقة بالمستخدم
     removeFromLocalStorage('userToken');
     removeFromLocalStorage('userRole');
     removeFromLocalStorage('userID');
@@ -51,11 +52,23 @@ function clearUserSession() {
     removeFromLocalStorage('userEmail');
     removeFromLocalStorage('deviceID');
     removeFromLocalStorage('approvedDevices');
+    removeFromLocalStorage('sessionCreatedAt');
+    removeFromLocalStorage('sessionExpiresAt');
+    removeFromLocalStorage('userLocation');
+    removeFromLocalStorage('locationEnabled');
+    
+    // مسح بيانات الموقع الجغرافي والإعدادات
+    removeFromLocalStorage('office_latitude');
+    removeFromLocalStorage('office_longitude');
+    removeFromLocalStorage('max_distance_meters');
     
     // حذف حالة الحضور المحفوظة
     if (userID) {
         removeFromLocalStorage(`checkInState_${userID}`);
+        removeFromLocalStorage(`approvedDevice_${userID}`);
     }
+    
+    console.log('✅ تم مسح جلسة المستخدم بنجاح');
 }
 
 /**
@@ -379,18 +392,34 @@ function logError(context, error) {
  */
 async function retryFetch(url, options = {}, maxRetries = 3) {
     let lastError;
+    // ⏱️ إضافة timeout إلى الطلب (10 ثواني)
+    const timeout = options.timeout || 10000;
+    
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const response = await fetch(url, options);
+            // إنشاء AbortController للـ timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response;
         } catch (error) {
             lastError = error;
             if (i < maxRetries - 1) {
-                await sleep(1000 * Math.pow(2, i)); // exponential backoff
+                const delay = 1000 * Math.pow(2, i);  // exponential backoff
+                console.warn(`⚠️ محاولة ${i + 1}/${maxRetries} فشلت، إعادة محاولة خلال ${delay}ms...`);
+                await sleep(delay);
             }
         }
     }
+    console.error('❌ فشلت جميع محاولات الاتصال');
     throw lastError;
 }
 

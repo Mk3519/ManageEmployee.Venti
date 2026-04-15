@@ -165,10 +165,9 @@ class DeviceFingerprint {
 
     /**
      * الحصول على الموقع الجغرافي الحالي (محسّن)
-     * @param {number} timeout - المدة القصوى بالميلي ثانية (افتراضي: 20 ثانية)
-     * @param {boolean} highAccuracy - تفعيل دقة عالية (افتراضي: true)
+     * @param {number} timeout - المدة القصوى بالميلي ثانية (افتراضي: 15 ثانية)
      */
-    static async getCurrentLocation(timeout = 20000, highAccuracy = true) {
+    static async getCurrentLocation(timeout = 15000) {
         return new Promise((resolve, reject) => {
             if (!DeviceFingerprint.isGeolocationSupported()) {
                 reject({
@@ -179,9 +178,9 @@ class DeviceFingerprint {
             }
 
             const options = {
-                enableHighAccuracy: highAccuracy,
-                timeout: Math.min(timeout, 20000),  // حد أقصى 20 ثانية
-                maximumAge: 5000  // استخدم بيانات حديثة جداً (5 ثوانٍ)
+                enableHighAccuracy: true,  // ✅ دقة عالية للحصول على موقع أسرع
+                timeout: Math.min(timeout, 30000),  // ✅ زيادة الوقت إلى 30 ثانية
+                maximumAge: 10000  // ✅ بيانات حديثة فقط (10 ثوانٍ)
             };
 
             navigator.geolocation.getCurrentPosition(
@@ -210,41 +209,37 @@ class DeviceFingerprint {
 
     /**
      * الحصول على الموقع الجغرافي مع إعادة محاولة ذكية
-     * محاولة أولى: enableHighAccuracy: false، timeout: 10 ثوانٍ
-     * إذا فشلت + كود الخطأ ليس "permission denied" → محاولة ثانية مع enableHighAccuracy: true
-     * @param {number} timeoutFirst - timeout للمحاولة الأولى (افتراضي: 10 ثوانٍ)
-     * @param {number} timeoutSecond - timeout للمحاولة الثانية (افتراضي: 15 ثانية)
-     * @returns {Promise<Object>} بيانات الموقع
+     * @param {number} timeout - المدة القصوى بالميلي ثانية
+     * @param {number} retryCount - عدد المحاولات (0-2)
      */
-    static async getCurrentLocationWithRetry(timeoutFirst = 10000, timeoutSecond = 15000) {
+    static async getCurrentLocationWithRetry(timeout = 15000, retryCount = 0) {
+        const maxRetries = 2;
+        
         try {
-            console.log('🔄 محاولة أولى للحصول على الموقع (enableHighAccuracy: false)...');
-            const location = await DeviceFingerprint.getCurrentLocation(timeoutFirst, false);
-            console.log('✅ تم الحصول على الموقع في المحاولة الأولى');
+            // محاولة 1: High Accuracy مع maximumAge
+            const location = await DeviceFingerprint.getCurrentLocation(timeout);
+            console.log(`✅ تم الحصول على الموقع في محاولة ${retryCount + 1}`);
             return location;
-        } catch (firstError) {
-            // إذا كان الخطأ "permission denied" - لا نحاول مرة أخرى
-            if (firstError.code === 1) {
-                console.error('❌ تم رفض إذن الموقع (Permission Denied)');
-                throw firstError;
+        } catch (error) {
+            console.warn(`⚠️ فشلت المحاولة ${retryCount + 1}:`, error.message);
+            
+            // إذا كان الخطأ هو TIMEOUT وهناك محاولات متبقية
+            if (error.code === 3 && retryCount < maxRetries) {
+                const retryDelay = 1000 + (retryCount * 1000); // تأخير متزايد
+                console.log(`🔄 إعادة محاولة ${retryCount + 2} بعد ${retryDelay}ms...`);
+                
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                
+                // إعادة محاولة مع timeout أطول
+                const newTimeout = timeout + (5000 * (retryCount + 1));
+                return DeviceFingerprint.getCurrentLocationWithRetry(newTimeout, retryCount + 1);
             }
-
-            // محاولة ثانية مع enableHighAccuracy: true فقط إذا لم يكن permission denied
-            try {
-                console.log('🔄 محاولة ثانية للحصول على الموقع (enableHighAccuracy: true)...');
-                const location = await DeviceFingerprint.getCurrentLocation(timeoutSecond, true);
-                console.log('✅ تم الحصول على الموقع في المحاولة الثانية');
-                return location;
-            } catch (secondError) {
-                console.error('❌ فشلت المحاولة الثانية أيضاً:', secondError.message);
-                throw secondError;
-            }
+            
+            throw error;
         }
     }
 
-    /**
-     * حساب المسافة بين نقطتين (Haversine formula)
-     */
+    
     static calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // نصف قطر الأرض بالكيلومتر
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -293,12 +288,12 @@ class DeviceFingerprint {
      */
     static getGeolocationErrorMessage(code) {
         const messages = {
-            0: 'خطأ غير محدد في الموقع الجغرافي',
-            1: 'لم يتم منح إذن الوصول للموقع. يرجى تفعيل الموقع',
-            2: 'تعذر الحصول على الموقع. تأكد من تفعيل GPS',
-            3: 'تأخر في الحصول على الموقع. تأكد من إتصال GPS جيد وحاول مرة أخرى'
+            0: '❌ خطأ غير محدد في الموقع الجغرافي',
+            1: '⚠️ لم يتم منح إذن الوصول للموقع\n👉 الحل: اذهب للإعدادات > الخصوصية > الموقع وفعّل GPS',
+            2: '❌ تعذر الحصول على الموقع\n👉 تحقق من:\n  ✓ تفعيل GPS في الجهاز\n  ✓ عدم وجود عوائق معدنية قوية\n  ✓ الاتصال بالإنترنت',
+            3: '⏱️ تأخر في الحصول على الموقع\n👉 قد يكون بسبب:\n  ✓ وجودك داخل مبنى\n  ✓ اتصال GPS ضعيف\n✋ جاري إعادة محاولة تلقائية...'
         };
-        return messages[code] || 'خطأ غير معروف';
+        return messages[code] || '❌ خطأ غير معروف';
     }
 
     /**
